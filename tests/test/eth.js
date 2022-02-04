@@ -451,14 +451,13 @@ context('ETH Contract', async () => {
             rewardsDistribution: app.account.getAddress(),
             rewardsToken: ERC20TokenAddress,
             stakingToken: ERC20TokenAddress,
-            rewardsDuration: tenDays
+            rewardsDuration: tenDays,
+            tokenSaleAddress: contractAddress
         });
 
         await swapContract.setStakingRewards({address: idoStakeToDeploy.params.contractAddress});
 
         const staking = await swapContract.getIDOStaking();
-
-        await staking.setTokenSaleAddress({address: contractAddress});
 
         await swapContract.approveFundERC20({tokenAmount : tokenFundAmount});
         await swapContract.fund({tokenAmount : tokenFundAmount});

@@ -8,7 +8,7 @@
 ## Functions
 
 <dl>
-<dt><a href="#deploy">deploy(owner, rewardsDistribution, rewardsToken, stakingToken, rewardsDuration)</a> ⇒ <code>string</code></dt>
+<dt><a href="#deploy">deploy(owner, rewardsDistribution, rewardsToken, stakingToken, rewardsDuration, tokenSaleAddress)</a> ⇒ <code>string</code></dt>
 <dd><p>Deploys the IDO Staking contracts</p>
 </dd>
 <dt><a href="#stake">stake(amount)</a></dt>
@@ -37,6 +37,9 @@
 </dd>
 <dt><a href="#notifyRewardAmountSamePeriod">notifyRewardAmountSamePeriod(amount)</a></dt>
 <dd><p>add (more) rewards token to current/future period</p>
+</dd>
+<dt><a href="#transferRewardTokenSamePeriod">transferRewardTokenSamePeriod(amount)</a></dt>
+<dd><p>Transfer and add (more) rewards token to current/future period</p>
 </dd>
 <dt><a href="#userAccumulatedRewards">userAccumulatedRewards(address)</a> ⇒ <code>Integer</code></dt>
 <dd><p>Returns the accumulated rewards</p>
@@ -73,7 +76,7 @@ IDO Staking Object
 
 <a name="deploy"></a>
 
-## deploy(owner, rewardsDistribution, rewardsToken, stakingToken, rewardsDuration) ⇒ <code>string</code>
+## deploy(owner, rewardsDistribution, rewardsToken, stakingToken, rewardsDuration, tokenSaleAddress) ⇒ <code>string</code>
 Deploys the IDO Staking contracts
 
 **Kind**: global function  
@@ -86,6 +89,7 @@ Deploys the IDO Staking contracts
 | rewardsToken | <code>string</code> | Address of the token we want to reward |
 | stakingToken | <code>string</code> | Address of the token to be staked |
 | rewardsDuration | <code>Integer</code> | Duration of the rewards |
+| tokenSaleAddress | <code>string</code> | Address of the pool |
 
 <a name="stake"></a>
 
@@ -160,6 +164,17 @@ Claim rewards from the staking contract
 
 ## notifyRewardAmountSamePeriod(amount)
 add (more) rewards token to current/future period
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| amount | <code>Integer</code> | 
+
+<a name="transferRewardTokenSamePeriod"></a>
+
+## transferRewardTokenSamePeriod(amount)
+Transfer and add (more) rewards token to current/future period
 
 **Kind**: global function  
 
