@@ -479,9 +479,169 @@ context('ETH Contract', async () => {
             await staking.notifyRewardAmountSamePeriod({reward: 20});
 
             await forwardTime(60 * 60);
+            const apy = await staking.getAPY();
+            const accumulated = await staking.userAccumulatedRewards({address: app.account.getAddress()});
 
-            expect(await staking.getAPY()).to.equal(3);
-            expect(await staking.userAccumulatedRewards({address: app.account.getAddress()})).to.equal('0.083356481481480948');
+            expect(apy).to.equal(5475.814013976979);
+            expect(accumulated).to.equal('0.083356481481480948');
+            await app.getERC20TokenContract({tokenAddress: ERC20TokenAddress}).transferTokenAmount({toAddress: staking.params.contractAddress, tokenAmount: 500});
+
+            await staking.claim();
+
+            expect(await staking.userAccumulatedRewards({address: app.account.getAddress()})).to.equal('0');
+        
+            expect(await staking.stakeAmount({address: app.account.getAddress()})).to.equal('0.01');
+
+            expect(await staking.totalStaked()).to.equal('0.01');
+            await staking.withdrawAll();
+            expect(await staking.stakeAmount({address: app.account.getAddress()})).to.equal('0');
+            expect(await staking.totalStaked()).to.equal('0');
+        }
+
+    }));
+
+
+    /* Staking Rewards */
+    it('should deploy Fixed Swap Contract with staking rewards and swap given half a year duration', mochaAsync(async () => {
+        /* Create Contract */
+        swapContract = await app.getFixedSwapContract({tokenAddress : ERC20TokenAddress});
+        /* Deploy */
+        let res = await swapContract.deploy({
+            tradeValue : tradeValue, 
+            tokensForSale : tokenFundAmount, 
+            isTokenSwapAtomic : false,
+            individualMaximumAmount : tokenFundAmount,
+            startDate : new Date((currentTime + (3 * 60)) * 1000), // 3 mins
+            endDate : new Date((currentTime + (8 * 60)) * 1000), // 8 mins
+            hasWhitelisting : false,
+            isETHTrade : true
+        });
+        contractAddress = swapContract.getAddress();
+        expect(res).to.not.equal(false);
+
+        const idoStakeToDeploy = new IDOStaking({
+            web3: app.web3,
+            contractAddress: undefined,
+            acc: app.account,
+        });
+        const twoYears = 31556952*2;
+        await idoStakeToDeploy.deploy({
+            owner: app.account.getAddress(),
+            rewardsDistribution: app.account.getAddress(),
+            rewardsToken: ERC20TokenAddress,
+            stakingToken: ERC20TokenAddress,
+            rewardsDuration: twoYears,
+            tokenSaleAddress: contractAddress
+        });
+
+        await swapContract.setStakingRewards({address: idoStakeToDeploy.params.contractAddress});
+
+        const staking = await swapContract.getIDOStaking();
+
+        await swapContract.approveFundERC20({tokenAmount : tokenFundAmount});
+        await swapContract.fund({tokenAmount : tokenFundAmount});
+        await forwardTime(3*60);
+        res = await swapContract.swap({tokenAmount : tokenPurchaseAmount});
+        expect(res).to.not.equal(false);
+
+        let purchases = await swapContract.getAddressPurchaseIds({address : app.account.getAddress()});
+        expect(await staking.stakeAmount({address: app.account.getAddress()})).to.equal('0');
+
+        if (!isRealChain) {
+            await forwardTime(6 * 60);
+
+            res = await swapContract.redeemTokens({purchase_id : purchases[0], stake: true});
+            expect(res).to.not.equal(false);
+
+            expect(await staking.userAccumulatedRewards({address: app.account.getAddress()})).to.equal('0');
+
+            await staking.notifyRewardAmountSamePeriod({reward: 10});
+
+            await forwardTime(31556952); // FORWARD ONE YEAR
+            const apy = await staking.getAPY();
+            const accumulated = await staking.userAccumulatedRewards({address: app.account.getAddress()});
+            expect(apy).to.equal(199999.99999992785); //High API due to rewarding 10 having 0.1 stake.
+            expect(accumulated).to.equal('5.000000158441888902');
+            await app.getERC20TokenContract({tokenAddress: ERC20TokenAddress}).transferTokenAmount({toAddress: staking.params.contractAddress, tokenAmount: 500});
+
+            await staking.claim();
+
+            expect(await staking.userAccumulatedRewards({address: app.account.getAddress()})).to.equal('0');
+        
+            expect(await staking.stakeAmount({address: app.account.getAddress()})).to.equal('0.01');
+
+            expect(await staking.totalStaked()).to.equal('0.01');
+            await staking.withdrawAll();
+            expect(await staking.stakeAmount({address: app.account.getAddress()})).to.equal('0');
+            expect(await staking.totalStaked()).to.equal('0');
+        }
+
+    }));
+
+
+
+    /* Staking Rewards */
+    it('should deploy Fixed Swap Contract with staking rewards and swap given A year high duration', mochaAsync(async () => {
+        /* Create Contract */
+        swapContract = await app.getFixedSwapContract({tokenAddress : ERC20TokenAddress});
+        /* Deploy */
+        let res = await swapContract.deploy({
+            tradeValue : tradeValue, 
+            tokensForSale : tokenFundAmount, 
+            isTokenSwapAtomic : false,
+            individualMaximumAmount : tokenFundAmount,
+            startDate : new Date((currentTime + (3 * 60)) * 1000), // 3 mins
+            endDate : new Date((currentTime + (8 * 60)) * 1000), // 8 mins
+            hasWhitelisting : false,
+            isETHTrade : true
+        });
+        contractAddress = swapContract.getAddress();
+        expect(res).to.not.equal(false);
+
+        const idoStakeToDeploy = new IDOStaking({
+            web3: app.web3,
+            contractAddress: undefined,
+            acc: app.account,
+        });
+        const oneYear = 31556952;
+        await idoStakeToDeploy.deploy({
+            owner: app.account.getAddress(),
+            rewardsDistribution: app.account.getAddress(),
+            rewardsToken: ERC20TokenAddress,
+            stakingToken: ERC20TokenAddress,
+            rewardsDuration: oneYear,
+            tokenSaleAddress: contractAddress
+        });
+
+        await swapContract.setStakingRewards({address: idoStakeToDeploy.params.contractAddress});
+
+        const staking = await swapContract.getIDOStaking();
+
+        await swapContract.approveFundERC20({tokenAmount : tokenFundAmount});
+        await swapContract.fund({tokenAmount : tokenFundAmount});
+        await forwardTime(3*60);
+        res = await swapContract.swap({tokenAmount : tokenPurchaseAmount});
+        expect(res).to.not.equal(false);
+
+        let purchases = await swapContract.getAddressPurchaseIds({address : app.account.getAddress()});
+        expect(await staking.stakeAmount({address: app.account.getAddress()})).to.equal('0');
+
+        if (!isRealChain) {
+            await forwardTime(6 * 60);
+
+            res = await swapContract.redeemTokens({purchase_id : purchases[0], stake: true});
+            expect(res).to.not.equal(false);
+
+            expect(await staking.userAccumulatedRewards({address: app.account.getAddress()})).to.equal('0');
+
+            await staking.notifyRewardAmountSamePeriod({reward: 0.01});
+            await forwardTime(oneYear); //FORWARD TO END OF DURATION
+
+            const apy = await staking.getAPY();
+            const accumulated = await staking.userAccumulatedRewards({address: app.account.getAddress()});
+
+            expect(apy).to.equal(99.9999999785052);
+            expect(accumulated).to.equal('0.00999999999785052');
             await app.getERC20TokenContract({tokenAddress: ERC20TokenAddress}).transferTokenAmount({toAddress: staking.params.contractAddress, tokenAmount: 500});
 
             await staking.claim();

@@ -11,29 +11,29 @@ import Client from "../utils/Client";
  * @param {string} contractAddress The staking contract address.
  * @param {Account} acc
  */
- class IDOStaking {
+class IDOStaking {
 
 	constructor({
 		web3,
 		contractAddress,
 		acc,
 	}) {
-        if (!web3) {
-            throw new Error("Please provide a valid web3 provider");
-        }
-        this.web3 = web3;
-        this.version = "2.0";
-        if (acc) {
-            this.acc = acc;
-        }
+		if (!web3) {
+			throw new Error("Please provide a valid web3 provider");
+		}
+		this.web3 = web3;
+		this.version = "2.0";
+		if (acc) {
+			this.acc = acc;
+		}
 
-        this.params = {
-            web3: web3,
-            contractAddress: contractAddress,
-            contract: new Contract(web3, idostaking, contractAddress),
-        };
+		this.params = {
+			web3: web3,
+			contractAddress: contractAddress,
+			contract: new Contract(web3, idostaking, contractAddress),
+		};
 		this.client = new Client();
-    }
+	}
 
 	/**
 	 * @function deploy
@@ -48,10 +48,10 @@ import Client from "../utils/Client";
 	 */
 	deploy = async ({
 		owner,
-        rewardsDistribution,
-        rewardsToken,
-        stakingToken,
-        rewardsDuration,
+		rewardsDistribution,
+		rewardsToken,
+		stakingToken,
+		rewardsDuration,
 		tokenSaleAddress,
 		callback
 	}) => {
@@ -78,13 +78,13 @@ import Client from "../utils/Client";
 		);
 	};
 
-    /**
+	/**
 	 * @function stake
 	 * @description Stakes tokens inside the stake contract
 	 * @param {Integer} amount Amount
 	 */
-	 stake = async ({ amount }) => {
-        amount = Numbers.toSmartContractDecimals(
+	stake = async ({ amount }) => {
+		amount = Numbers.toSmartContractDecimals(
 			amount,
 			await this.getDecimals()
 		)
@@ -102,7 +102,7 @@ import Client from "../utils/Client";
 		}
 	};
 
-    /**
+	/**
 	 * @function approveStakeERC20
 	 * @param {Integer} tokenAmount
 	 * @description Approve the stake to use approved tokens
@@ -115,7 +115,7 @@ import Client from "../utils/Client";
 		});
 	};
 
-    /**
+	/**
 	 * @function isApproved
 	 * @description Verify if the address has approved the staking to deposit
 	 * @param {Integer} tokenAmount
@@ -138,23 +138,21 @@ import Client from "../utils/Client";
 	getAPY = async () => {
 		const oneYear = 31556952;
 		const duration = await this.params.contract
-				.getContract()
-				.methods.rewardsDuration()
-				.call();
-		const rewardPerToken = await this.params.contract
 			.getContract()
-			.methods.rewardPerToken()
+			.methods.rewardsDuration()
 			.call();
-
-		return parseInt((parseInt(rewardPerToken) * 100) / (parseInt(duration) / oneYear));
+		const rewarForDuration = await this.params.contract.getContract().methods.getRewardForDuration().call();
+	
+		return ((Numbers.fromDecimals(rewarForDuration, 18) * (duration / oneYear))) * 10000;
 	}
 
-    /**
+
+	/**
 	 * @function withdraw
 	 * @param {Integer} amount
 	 * @description Withdraw tokens from the stake contract
 	 */
-	 withdraw = async ({amount}) => {
+	withdraw = async ({ amount }) => {
 		try {
 			return await this.client.sendTx(
 				this.params.web3,
@@ -176,7 +174,7 @@ import Client from "../utils/Client";
 	 * @function withdrawAll
 	 * @description Withdraw all the tokens from the stake contract
 	 */
-	 withdrawAll = async () => {
+	withdrawAll = async () => {
 		try {
 			return await this.client.sendTx(
 				this.params.web3,
@@ -210,11 +208,11 @@ import Client from "../utils/Client";
 		}
 	};
 
-    /**
+	/**
 	 * @function claim
 	 * @description Claim rewards from the staking contract
 	 */
-	 claim = async () => {
+	claim = async () => {
 		try {
 			return await this.client.sendTx(
 				this.params.web3,
@@ -234,7 +232,7 @@ import Client from "../utils/Client";
 	 * @description add (more) rewards token to current/future period
 	 * @param {Integer} amount
 	 */
-	notifyRewardAmountSamePeriod = async ({reward}) => {
+	notifyRewardAmountSamePeriod = async ({ reward }) => {
 		try {
 			const amount = Numbers.toSmartContractDecimals(
 				reward,
@@ -258,7 +256,7 @@ import Client from "../utils/Client";
 	 * @description Transfer and add (more) rewards token to current/future period
 	 * @param {Integer} amount
 	 */
-	 transferRewardTokenSamePeriod = async ({reward}) => {
+	transferRewardTokenSamePeriod = async ({ reward }) => {
 		try {
 			const amount = Numbers.toSmartContractDecimals(
 				reward,
@@ -277,25 +275,25 @@ import Client from "../utils/Client";
 		}
 	};
 
-    /**
+	/**
 	 * @function userAccumulatedRewards
 	 * @description Returns the accumulated rewards
 	 * @param {string} address
 	 * @returns {Integer} userAccumulatedRewards
 	*/
-    userAccumulatedRewards = async ({address}) => {
+	userAccumulatedRewards = async ({ address }) => {
 		return Numbers.fromDecimals(
 			await this.params.contract.getContract().methods.earned(address).call(),
 			await this.getRewardsDecimals(),
 		);
 	}
-	
+
 	/**
 	 * @function lastTimeRewardApplicable
 	 * @description Get the last time rewards are applicable
 	 * @returns {Date}
 	 */
-	 async lastTimeRewardApplicable() {
+	async lastTimeRewardApplicable() {
 		return Numbers.fromSmartContractTimeToMinutes(
 			await this.params.contract.getContract().methods.lastTimeRewardApplicable().call()
 		);
@@ -307,24 +305,24 @@ import Client from "../utils/Client";
 	 * @description Returns the total stake
 	 * @returns {Integer} totalStakeAmount
 	*/
-    totalStaked = async () => {
+	totalStaked = async () => {
 		return Numbers.fromDecimals(
-            await this.params.contract.getContract().methods.totalSupply().call(),
-            await this.getDecimals()
-        );
+			await this.params.contract.getContract().methods.totalSupply().call(),
+			await this.getDecimals()
+		);
 	}
 
-    /**
+	/**
 	 * @function stakeAmount
 	 * @description Returns the stake amount for a wallet
 	 * @param {string} address
 	 * @returns {Integer} stakeAmount
 	*/
-    stakeAmount = async ({address}) => {
+	stakeAmount = async ({ address }) => {
 		return Numbers.fromDecimals(
-            await this.params.contract.getContract().methods.balanceOf(address).call(),
-            await this.getDecimals()
-        );
+			await this.params.contract.getContract().methods.balanceOf(address).call(),
+			await this.getDecimals()
+		);
 	}
 
 	/**
@@ -332,7 +330,7 @@ import Client from "../utils/Client";
 	 * @description Sets the token sale address
 	 * @param {string} address
 	*/
-	setTokenSaleAddress = async ({address}) => {
+	setTokenSaleAddress = async ({ address }) => {
 		try {
 			await this.client.sendTx(
 				this.params.web3,
@@ -348,11 +346,11 @@ import Client from "../utils/Client";
 		}
 	};
 
-    getDecimals = async () => {
+	getDecimals = async () => {
 		return await (await this.getTokenContract()).getDecimals();
 	}
 
-    getTokenContract = async () => {
+	getTokenContract = async () => {
 		if (!this.params.erc20TokenContract) {
 			this.params.erc20TokenContract = new ERC20TokenContract({
 				web3: this.params.web3,
@@ -367,7 +365,7 @@ import Client from "../utils/Client";
 		return await (await this.getRewardsTokenContract()).getDecimals();
 	}
 
-    getRewardsTokenContract = async () => {
+	getRewardsTokenContract = async () => {
 		if (!this.params.erc20TokenRewardsContract) {
 			this.params.erc20TokenRewardsContract = new ERC20TokenContract({
 				web3: this.params.web3,
