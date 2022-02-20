@@ -22,7 +22,7 @@ const TEST_PRIVATE_KEY =
  */
 
 type Chain = 'ETH' | 'BSC' | 'MATIC' | 'DOT'
-type ConstructorArgs = { test: boolean; mainnet: boolean, network: Chain, web3?: Web3 }
+type ConstructorArgs = { test: boolean; network?: Chain, web3?: Web3 }
 type GetUserACcountParams = { privateKey: string }
 type GetFixedSwapContractArgs = { tokenAddress: string, contractAddress?: string }
 type GetTokenContractArgs = { tokenAddress: string }
@@ -52,10 +52,10 @@ class Application implements ApplicationType {
 	private account: Account;
 
 	constructor(args: ConstructorArgs) {
-		const { test, mainnet, network, web3 } = args
+		const { test = false, network = 'ETH', web3 } = args
 		this.test = test;
-		global.IS_TEST = !mainnet;
-		this.mainnet = mainnet;
+		global.IS_TEST = test;
+		this.mainnet = !test;
 		Chains.checkIfNetworkIsSupported(network);
 		this.network = network;
 
