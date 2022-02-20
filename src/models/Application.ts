@@ -9,9 +9,9 @@ import Staking from "./Staking";
 import FixedSwapContractLegacy from "./FixedSwapContractLegacy";
 import Chains from "../utils/Chains";
 
-const TEST_PRIVATE_KEY = 
+const TEST_PRIVATE_KEY =
   "0x7f76de05082c4d578219ca35a905f8debe922f1f00b99315ebf0706afc97f132";
-  
+
 /**
  * Polkastarter Application Object
  * @constructor Application
@@ -20,8 +20,39 @@ const TEST_PRIVATE_KEY =
  * @param {Boolean=} test ? Specifies if we're on test env
  * @param {Web3=} web3 Custom Web3 instance. If not provided the Application will instance it for you. (Default: undefined)
  */
-class Application {
-	constructor({test=false, mainnet=true, network='ETH', web3=undefined}) {
+
+type Chain = 'ETH' | 'BSC' | 'MATIC' | 'DOT'
+type ConstructorArgs = { test: boolean; mainnet: boolean, network: Chain, web3?: Web3 }
+type GetUserACcountParams = { privateKey: string }
+type GetFixedSwapContractArgs = { tokenAddress: string, contractAddress?: string }
+type GetTokenContractArgs = { tokenAddress: string }
+
+interface ApplicationType {
+	startWithoutMetamask: () => void
+	start: () => void
+	login: () => void
+	__getUserAccount: (args: GetUserACcountParams) => Account
+	getSigner: () => Signer
+	getNetworkUtils: () => Network
+	getWalletUtils: () => Wallet
+	getFixedSwapContract: (args: GetFixedSwapContractArgs) => Promise<FixedSwapContract | FixedSwapContractLegacy>
+	getERC20TokenContract: (args: GetTokenContractArgs) => ERC20TokenContract
+	getETHNetwork: () => Promise<string>
+	getAddress: () => Promise<string>
+	getETHBalance: () => Promise<string>
+}
+
+
+
+class Application implements ApplicationType {
+	private test: boolean;
+	private mainnet: boolean;
+	private network: Chain;
+	private web3: Web3;
+	private account: Account;
+
+	constructor(args: ConstructorArgs) {
+		const { test, mainnet, network, web3 } = args
 		this.test = test;
 		global.IS_TEST = !mainnet;
 		this.mainnet = mainnet;
@@ -34,7 +65,7 @@ class Application {
 			} else {
 				this.web3 = web3;
 			}
-			// this.login();
+			this.login();
 			this.account = new Account(this.web3, this.web3.eth.accounts.privateKeyToAccount(TEST_PRIVATE_KEY));
 		}
 	}
@@ -49,7 +80,7 @@ class Application {
 			this.web3 = new Web3(rpc);
 		}
 	}
-	
+
 	/**
 	 * @function start
 	 * @description Starts an instance of web3
@@ -94,7 +125,7 @@ class Application {
 
 	/**
 	 * @function getSigner
-	 * @description Returns the Signer instance. 
+	 * @description Returns the Signer instance.
 	*/
 	getSigner = () => {
 		return new Signer();
@@ -102,7 +133,7 @@ class Application {
 
 	/**
 	 * @function getNetworkUtils
-	 * @description Returns the Network Utils instance. 
+	 * @description Returns the Network Utils instance.
 	*/
 	getNetworkUtils = () => {
 		return new Network(this.network, !this.mainnet, this.getETHNetwork);
@@ -110,7 +141,7 @@ class Application {
 
 	/**
 	 * @function getWalletUtils
-	 * @description Returns the Wallet Utils instance. 
+	 * @description Returns the Wallet Utils instance.
 	*/
 	getWalletUtils = () => {
 		return new Wallet(this.network, !this.mainnet);
@@ -120,7 +151,7 @@ class Application {
 	 * @function getStaking
 	 * @param {string=} contractAddress The staking contract address. (Default: Predefined addresses depending on the network)
 	 * @param {string=} tokenAddress The staking token address. (Default: Predefined addresses depending on the network)
-	 * @description Returns the Staking Model instance. 
+	 * @description Returns the Staking Model instance.
 	*/
 	getStaking = ({contractAddress=null, tokenAddress=null}) => {
 		return new Staking({
@@ -163,26 +194,27 @@ class Application {
 				try{
 					contract = new FixedSwapContractLegacy({
 						web3: this.web3,
+						decimals: 3,
 						tokenAddress: tokenAddress,
 						contractAddress: contractAddress,
 						acc : this.test ? this.account : null
 					});
 				}catch(err){
 					throw err;
-	
+
 				}
 			}
-	
+
 			return contract;
 		}
 	};
-	
+
 	/**
 	 * @function getERC20TokenContract
 	 * @param {string} tokenAddress The token address
 	 * @description Returns ERC20 instance
 	*/
-	getERC20TokenContract =  ({tokenAddress}) => {
+	getERC20TokenContract =  ({ tokenAddress }: GetTokenContractArgs) => {
 		try{
 			return new ERC20TokenContract({
 				web3: this.web3,
