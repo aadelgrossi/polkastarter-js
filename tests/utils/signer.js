@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 import chai from 'chai';
-import { Application } from '../../src';
+import Application from '../../src';
 import { mochaAsync } from '../utils';
 
 const expect = chai.expect;

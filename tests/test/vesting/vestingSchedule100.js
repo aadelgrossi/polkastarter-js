@@ -3,7 +3,7 @@ require('dotenv').config();
 import chai from 'chai';
 import { mochaAsync, decimalAdjust } from '../../utils';
 import moment from 'moment';
-import Application from '../../../src/models';
+import Application from '../../../src';
 import delay from 'delay';
 const ERC20TokenAddress = '0x7a7748bd6f9bac76c2f3fcb29723227e3376cbb2';
 var contractAddress = '0x420751cdeb28679d8e336f2b4d1fc61df7439b5a';
@@ -16,7 +16,7 @@ const tradeValue = 0.01;
 
 context('Vesting Time = 1 And Vesting Schedule = 100', async () => {
     var swapContract, app, isSaleOpen;
-   
+
     before( async () =>  {
         app = new Application({test : true, mainnet : false});
     });
@@ -28,8 +28,8 @@ context('Vesting Time = 1 And Vesting Schedule = 100', async () => {
         swapContract = await app.getFixedSwapContract({tokenAddress : ERC20TokenAddress, decimals : 18});
         /* Deploy */
         let res = await swapContract.deploy({
-            tradeValue : tradeValue, 
-            tokensForSale : tokenFundAmount, 
+            tradeValue : tradeValue,
+            tokensForSale : tokenFundAmount,
             isTokenSwapAtomic : false,
             individualMaximumAmount : tokenFundAmount,
             startDate : moment().add(4, 'minutes'),
@@ -65,8 +65,8 @@ context('Vesting Time = 1 And Vesting Schedule = 100', async () => {
         expect(res).to.not.equal(false);
     }));
 
-    it('GET - isSaleOpen - before Start', mochaAsync(async () => {     
-        await delay(3*60*1000);   
+    it('GET - isSaleOpen - before Start', mochaAsync(async () => {
+        await delay(3*60*1000);
         let res = await swapContract.isOpen();
         isSaleOpen = res;
         expect(res).to.equal(true);
@@ -77,19 +77,19 @@ context('Vesting Time = 1 And Vesting Schedule = 100', async () => {
         expect(res).to.not.equal(false);
     }));
 
-    it('GET - Purchases', mochaAsync(async () => {        
+    it('GET - Purchases', mochaAsync(async () => {
         let purchases = await swapContract.getPurchaseIds();
         expect(purchases.length).to.equal(1);
     }));
 
 
-    it('GET - My Purchases', mochaAsync(async () => {        
+    it('GET - My Purchases', mochaAsync(async () => {
         let purchases = await swapContract.getAddressPurchaseIds({address : app.account.getAddress()});
         expect(purchases.length).to.equal(1);
     }));
 
-    it('GET - Fixed Swap is Closed', mochaAsync(async () => {  
-        await delay(4*60*1000); 
+    it('GET - Fixed Swap is Closed', mochaAsync(async () => {
+        await delay(4*60*1000);
         let res = await swapContract.hasFinalized();
         expect(res).to.equal(true);
         res = await swapContract.isOpen();
@@ -97,7 +97,7 @@ context('Vesting Time = 1 And Vesting Schedule = 100', async () => {
     }));
 
     it('GET - Purchase ID', mochaAsync(async () => {
-        let purchases = await swapContract.getAddressPurchaseIds({address : app.account.getAddress()}); 
+        let purchases = await swapContract.getAddressPurchaseIds({address : app.account.getAddress()});
         let purchase = await swapContract.getPurchase({purchase_id : purchases[0]});
         const amountPurchase = Number(purchase.amount).noExponents();
         expect(Number(amountPurchase).toFixed(2)).to.equal(Number(tokenPurchaseAmount).noExponents());
@@ -106,7 +106,7 @@ context('Vesting Time = 1 And Vesting Schedule = 100', async () => {
         expect(purchase.reverted).to.equal(false);
     }));
 
-    it('Should Redeem Tokens', mochaAsync(async () => {    
+    it('Should Redeem Tokens', mochaAsync(async () => {
         let purchases = await swapContract.getAddressPurchaseIds({address : app.account.getAddress()});
         let purchase = await swapContract.getPurchase({purchase_id : purchases[0]});
         let redeemTokens = await swapContract.redeemTokens({purchase_id : purchase._id});
@@ -114,14 +114,14 @@ context('Vesting Time = 1 And Vesting Schedule = 100', async () => {
         expect(redeemTokens.status).to.equal(true);
     }));
 
-    it('GET - Distribution Info', mochaAsync(async () => {    
+    it('GET - Distribution Info', mochaAsync(async () => {
         let info = await swapContract.getDistributionInformation();
         expect(Number(info.vestingTime).noExponents()).to.equal(Number(1).noExponents());
         expect(info.vestingSchedule).to.deep.equal([100]);
     }));
 
     it('GET - Purchase ID After Redeem', mochaAsync(async () => {
-        let purchases = await swapContract.getAddressPurchaseIds({address : app.account.getAddress()}); 
+        let purchases = await swapContract.getAddressPurchaseIds({address : app.account.getAddress()});
         let purchase = await swapContract.getPurchase({purchase_id : purchases[0]});
         const amountPurchase = Number(purchase.amount).noExponents();
         expect(Number(amountPurchase).toFixed(2)).to.equal(Number(tokenPurchaseAmount).noExponents());

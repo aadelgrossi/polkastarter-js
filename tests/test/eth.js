@@ -4,7 +4,7 @@ import Web3 from "web3";
 import chai from 'chai';
 import { mochaAsync } from '../utils';
 import moment, { isDate } from 'moment';
-import { Application } from '../../src';
+import Application from '../../src';
 import { ierc20, idostaking } from "../../src/interfaces";
 import Numbers from "../../src/utils/Numbers";
 import Contract from "../../src/models/Contract";

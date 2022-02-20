@@ -4,7 +4,7 @@ import Web3 from "web3";
 import chai from 'chai';
 import { mochaAsync } from '../utils';
 import moment from 'moment';
-import { Application } from '../../src';
+import Application from '../../src';
 import { ierc20, staking } from "../../src/interfaces";
 import * as ethers from 'ethers';
 
