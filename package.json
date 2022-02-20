@@ -2,7 +2,7 @@
     "name": "polkastarter-js",
     "version": "2.2.6-beta1",
     "description": "",
-    "main": "index.js",
+    "main": "dist/index.js",
     "engines": {
         "node": ">=10.13.0 <=^14"
     },
@@ -42,8 +42,7 @@
         "web3": "^1.7.0"
     },
     "scripts": {
-        "build": "babel src --out-dir lib",
-        "compile": "tsc",
+        "build": "tsc -p .",
         "test": "nyc ./node_modules/.bin/mocha ./tests/index.js --timeout 3000000 --require babel-core/register --require babel-polyfill",
         "index": "babel-node ./index.js --presets es2015,stage-2",
         "docs:numbers": "jsdoc2md --configure tooling/docs/jsdoc.json --files src/models/FixedSwapContract.js > docs/SWAP.md",
@@ -86,6 +85,9 @@
         "sourceMaps": true,
         "retainLines": true
     },
+    "files": [
+        "lib/**/*"
+    ],
     "author": "",
     "license": "ISC"
 }
