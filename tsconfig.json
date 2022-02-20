@@ -7,11 +7,11 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "allowJs": true,
-    "rootDir": "./",
+    "rootDir": "src",
     "outDir": "dist"
   },
   "lib": ["es2015"],
-  "include": ["src", "types.d.ts"],
+  "include": ["**/*.ts", "types.d.ts"],
   "exclude": ["node_modules", "tests", "tooling"],
   "ts-node": {
     "files": true
