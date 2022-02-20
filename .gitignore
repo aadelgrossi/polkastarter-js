@@ -4,3 +4,4 @@ out
 _book
 .DS_Store
 .nyc_output
+dist
