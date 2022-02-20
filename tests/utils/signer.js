@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 import chai from 'chai';
-import Application from '../../src/models';
+import { Application } from '../../src';
 import { mochaAsync } from '../utils';
 
 const expect = chai.expect;
@@ -31,9 +31,9 @@ context('Signer', async () => {
             ],
             decimals: 18,
             contractAddress: '0xb8f7166496996a7da21cf1f1b04d9b3e26a3d077',
-            accountJson: JSON.stringify(jsonAccount), 
+            accountJson: JSON.stringify(jsonAccount),
             password: 'test1234'
-        }); 
+        });
 
         expect(signs).to.have.deep.members([
             {
