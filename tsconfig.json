@@ -12,5 +12,11 @@
   },
   "lib": ["es2015"],
   "include": ["src", "types.d.ts"],
-  "exclude": ["node_modules", "tests", "tooling"]
+  "exclude": ["node_modules", "tests", "tooling"],
+  "ts-node": {
+    "files": true
+  },
+  "files": [
+    "types.d.ts",
+  ],
 }
