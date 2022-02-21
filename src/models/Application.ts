@@ -8,6 +8,7 @@ import ERC20TokenContract from "./ERC20TokenContract";
 import Staking from "./Staking";
 import FixedSwapContractLegacy from "./FixedSwapContractLegacy";
 import Chains from "../utils/Chains";
+import Contract from "./Contract";
 
 const TEST_PRIVATE_KEY =
   "0x7f76de05082c4d578219ca35a905f8debe922f1f00b99315ebf0706afc97f132";
@@ -25,6 +26,7 @@ type Chain = 'ETH' | 'BSC' | 'MATIC' | 'DOT'
 type ConstructorArgs = { test: boolean; network?: Chain, web3?: Web3 }
 type GetUserACcountParams = { privateKey: string }
 type GetFixedSwapContractArgs = { tokenAddress: string, contractAddress?: string }
+type GetStakingArgs = { tokenAddress?: string, contractAddress?: string }
 type GetTokenContractArgs = { tokenAddress: string }
 
 interface Application {
@@ -117,7 +119,7 @@ class ApplicationImpl implements Application {
 	};
 
 
-	__getUserAccount = ({privateKey}) => {
+	__getUserAccount = ({ privateKey }: GetUserACcountParams) => {
 		return new Account(this.web3, this.web3.eth.accounts.privateKeyToAccount(privateKey));
 	}
 
@@ -151,14 +153,14 @@ class ApplicationImpl implements Application {
 	 * @param {string=} tokenAddress The staking token address. (Default: Predefined addresses depending on the network)
 	 * @description Returns the Staking Model instance.
 	*/
-	getStaking = ({contractAddress=null, tokenAddress=null}) => {
+	getStaking = ({contractAddress = null, tokenAddress = null}: GetStakingArgs) => {
 		return new Staking({
 			web3: this.web3,
 			acc : this.test ? this.account : null,
 			contractAddress: contractAddress,
 			tokenAddress: tokenAddress,
 			network: this.network,
-			test: !this.mainnet
+			test: this.test
 		});
 	}
 
@@ -168,8 +170,7 @@ class ApplicationImpl implements Application {
 	 * @param {string=} contractAddress The swap contract address, in case t hat has already been instanced. (Default = null)
 	 * @description Returns Fixed Swap instance
 	*/
-	getFixedSwapContract = async ({tokenAddress, contractAddress=null}) => {
-		let contract;
+	getFixedSwapContract = async ({ tokenAddress, contractAddress = null }: GetFixedSwapContractArgs) => {
 		if(!contractAddress){
 			// Not deployed
 			return new FixedSwapContract({
@@ -181,29 +182,30 @@ class ApplicationImpl implements Application {
 		}else{
 			// Deployed
 			try{
-				contract = new FixedSwapContract({
+				const contract = new FixedSwapContract({
 					web3: this.web3,
 					tokenAddress: tokenAddress,
 					contractAddress: contractAddress,
 					acc : this.test ? this.account : null
 				});
 				await contract.isETHTrade();
+
+				return contract;
 			}catch(err){
 				try{
-					contract = new FixedSwapContractLegacy({
+					const contract = new FixedSwapContractLegacy({
 						web3: this.web3,
 						decimals: 3,
 						tokenAddress: tokenAddress,
 						contractAddress: contractAddress,
 						acc : this.test ? this.account : null
 					});
+					return contract;
 				}catch(err){
 					throw err;
 
 				}
 			}
-
-			return contract;
 		}
 	};
 
