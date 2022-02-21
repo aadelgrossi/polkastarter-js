@@ -27,7 +27,7 @@ type GetUserACcountParams = { privateKey: string }
 type GetFixedSwapContractArgs = { tokenAddress: string, contractAddress?: string }
 type GetTokenContractArgs = { tokenAddress: string }
 
-interface ApplicationType {
+interface Application {
 	startWithoutMetamask: () => void
 	start: () => void
 	login: () => void
@@ -42,7 +42,7 @@ interface ApplicationType {
 	getETHBalance: () => Promise<string>
 }
 
-class Application implements ApplicationType {
+class ApplicationImpl implements Application {
 	private test: boolean;
 	private mainnet: boolean;
 	private network: Chain;
@@ -258,4 +258,4 @@ class Application implements ApplicationType {
 	};
 }
 
-export default Application;
+export default ApplicationImpl;
