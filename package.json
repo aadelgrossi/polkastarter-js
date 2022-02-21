@@ -41,6 +41,7 @@
         "web3": "1.0.0-beta.55"
     },
     "scripts": {
+        "prebuild": "rimraf dist",
         "build": "tsc -p .",
         "test": "nyc ./node_modules/.bin/mocha ./tests/index.js --timeout 3000000 --require @babel/register --require @babel/polyfill --require ts-node/register --require source-map-support/register --recursive",
         "index": "babel-node ./index.js --presets es2015,stage-2",
