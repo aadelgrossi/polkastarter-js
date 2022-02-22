@@ -29,7 +29,7 @@ type GetFixedSwapContractArgs = { tokenAddress: string, contractAddress?: string
 type GetStakingArgs = { tokenAddress?: string, contractAddress?: string }
 type GetTokenContractArgs = { tokenAddress: string }
 
-interface Application {
+export interface Application {
 	startWithoutMetamask: () => void
 	start: () => void
 	login: () => void

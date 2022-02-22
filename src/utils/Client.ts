@@ -1,11 +1,22 @@
+import Web3 from 'web3';
+import Account from '../models/Account';
+import Contract from '../models/Contract';
 /* istanbul ignore file */
 
 /**
  * Client utils object
  * @constructor Network
 */
+
+type MetamaskCallArgs = {
+	f: any,
+	acc: string,
+	value: string | number,
+	callback: (value: any) => void
+}
+
 class Client {
-    metamaskCall = async ({ f, acc, value, callback=()=> {} }) => {
+    metamaskCall = async ({ f, acc, value, callback=(value: any)=> {} }: MetamaskCallArgs) => {
 		return new Promise( (resolve, reject) => {
 			// Detect possible error on tx
 			f.estimateGas({gas: 5000000}, (error, gasAmount) => {
@@ -32,24 +43,34 @@ class Client {
 		});
 	};
 
-	sendTx = async (web3, acc, contract, f, call = false, value, callback=()=>{}) => {
-		var res;
+	sendTx = async (
+		web3: Web3,
+		acc: Account,
+		contract: Contract,
+		f: any,
+		call = false,
+		value: string,
+		callback = () => {} ) => {
+
 		if (!acc && !call) {
 			const accounts = await web3.eth.getAccounts();
-			res = await this.metamaskCall({ f, acc: accounts[0], value, callback });
-		} else if (acc && !call) {
+			return await this.metamaskCall({ f, acc: accounts[0], value, callback });
+		}
+
+		if (acc && !call) {
 			let data = f.encodeABI();
-			res = await contract.send(
+			return await contract.send(
 				acc.getAccount(),
 				data,
 				value
 			);
-		} else if (acc && call) {
-			res = await f.call({ from: acc.getAddress() });
-		} else {
-			res = await f.call();
 		}
-		return res;
+
+		if (acc && call) {
+			return await f.call({ from: acc.getAddress() });
+		}
+
+		return await f.call();
 	};
 }
 export default Client;

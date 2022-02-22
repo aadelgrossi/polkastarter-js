@@ -9,7 +9,7 @@ const MOONBEAM_TESTNET_URL =
   "https://rpc.api.moonbase.moonbeam.network";
 const BINANCE_CHAIN_TESTNET_URL =
   "https://data-seed-prebsc-1-s1.binance.org:8545";
-const BINANCE_CHAIN_URL = 
+const BINANCE_CHAIN_URL =
   "https://bsc-dataseed1.binance.org:443";
 const POLYGON_CHAIN_TESTNET_URL =
   "https://rpc-mumbai.maticvigil.com/";
@@ -46,44 +46,56 @@ const networksEnum = Object.freeze({
  * Chains object
  * @constructor Chains
  */
-class chains {
+class Chains {
   constructor() {}
 
-  checkIfNetworkIsSupported(network)  {
+  private readonly networksEnum = Object.freeze({
+    1: "Ethereum Main",
+    2: "Morden",
+    3: "Ropsten",
+    4: "Rinkeby",
+    56: "BSC Main",
+    97: "BSC Test",
+    42: "Kovan",
+    137: "Polygon",
+    80001: "Mumbai",
+    44787: "Celo Testnet",
+    42220: "Celo",
+    43114: "Avalanche",
+    43113: "Avalanche Testnet",
+    1284: "Moonbeam",
+    1287: "Moonbeam Testnet"
+  });
+
+  checkIfNetworkIsSupported = (network: string) => {
     if(!this.isNetworkSupported(network)) {
 			throw new Error("Network has to be ETH, DOT, BSC, MATIC, CELO or AVAX");
 		}
   }
 
-  isNetworkSupported(network) {
-    if((network != 'ETH') && (network != 'DOT') && (network != 'BSC') && (network !='MATIC') && (network != 'CELO') && (network != 'AVAX')){
-			return false;
-		}
-    return true;
+  isNetworkSupported = (network: string) => {
+    return ['ETH', 'DOT','BSC','MATIC','CELO', 'AVAX'].includes(network)
   }
 
-  getRpcUrl(network, mainnet = true) {
+  getRpcUrl = (network: string, mainnet = true) => {
     if(network == 'DOT') {
-      return (mainnet == true) ? MOONBEAM_URL : MOONBEAM_TESTNET_URL;
+      return mainnet ? MOONBEAM_URL : MOONBEAM_TESTNET_URL;
 		} else if(network == 'BSC') {
-			return (mainnet == true) ? BINANCE_CHAIN_URL : BINANCE_CHAIN_TESTNET_URL;
+			return mainnet ? BINANCE_CHAIN_URL : BINANCE_CHAIN_TESTNET_URL;
 		} else if(network == 'ETH') {
-			return (mainnet == true) ? ETH_URL_MAINNET : ETH_URL_TESTNET;
+			return mainnet ? ETH_URL_MAINNET : ETH_URL_TESTNET;
 		} else if(network == 'MATIC') {
-			return (mainnet == true) ? POLYGON_CHAIN_URL : POLYGON_CHAIN_TESTNET_URL;
+			return mainnet ? POLYGON_CHAIN_URL : POLYGON_CHAIN_TESTNET_URL;
 		} else if(network == 'CELO') {
-			return (mainnet == true) ? CELO_CHAIN_URL : CELO_CHAIN_TESTNET_URL;
+			return mainnet ? CELO_CHAIN_URL : CELO_CHAIN_TESTNET_URL;
 		} else if(network == 'AVAX') {
-			return (mainnet == true) ? AVAX_CHAIN_URL : AVAX_CHAIN_TESTNET_URL;
+			return mainnet ? AVAX_CHAIN_URL : AVAX_CHAIN_TESTNET_URL;
 		}
   }
 
-  getNetworksEnum() {
-    return networksEnum;
-  }
+  getNetworksEnum = () => networksEnum;
 }
 
-let Chains = new chains()
+export default new Chains()
 
-export default Chains
 

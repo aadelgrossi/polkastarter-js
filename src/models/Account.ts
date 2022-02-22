@@ -2,7 +2,7 @@ import Web3 from "web3";
 import { Account as Web3Account } from 'web3-eth-accounts';
 import { TransactionReceipt, TransactionConfig } from 'web3-core'
 
-interface Account {
+export interface Account {
     getBalance: () => Promise<string>
     getAddress: () => string
     getPrivateKey: () => string

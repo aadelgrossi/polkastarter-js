@@ -1,8 +1,7 @@
 /* istanbul ignore file */
 
-import Addresses from "../models/Addresses";
-
 import Chains from "./Chains";
+import { tokenTestAddresses, tokenAddresses } from '../constants/addresses'
 
 /**
  * Wallet utils object
@@ -11,24 +10,23 @@ import Chains from "./Chains";
  * @param {Boolean=} test ? Specifies if we're on test env (Default: false)
 */
 class Wallet {
+    private network: string;
+    private test: boolean;
+    private tokenAddress: typeof tokenAddresses;
 
-    constructor(network='ETH', test = false) {
+    constructor(network = 'ETH', test = false) {
         Chains.checkIfNetworkIsSupported(network);
+
         this.network = network;
         this.test = test;
-        if (test) {
-            this.tokenAddress = Addresses.tokenTestAddresses;
-        } else {
-            this.tokenAddress = Addresses.tokenAddresses;
-        }
-
+        this.tokenAddress = test ? tokenTestAddresses : tokenAddresses;
     }
 
     /**
 	 * @function addTokenToWallet
 	 * @description Adds POLS token to user's wallet
 	 */
-    async addTokenToWallet() {
+    addTokenToWallet = async () => {
         if (window.ethereum) {
             await window.ethereum.request({
                 method: 'metamask_watchAsset',
@@ -43,7 +41,6 @@ class Wallet {
             });
         }
     }
-    
 }
 
 export default Wallet;
