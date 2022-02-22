@@ -7,10 +7,10 @@ export const mochaAsync = (fn) => {
 };
 
 export const detectValidationErrors = (res) => {
-    if(res.message == 'Validation errors'){
+    if(res.message == 'Validation errors') {
         console.log(res.errors[0]);
         return true;
-    }else{
+    } else {
         return false;
     }
 }
