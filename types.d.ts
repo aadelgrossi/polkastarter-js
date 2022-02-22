@@ -15,4 +15,10 @@ declare global {
   }
 }
 
+declare global {
+  interface Number {
+      noExponents(this: number): string;
+  }
+}
+
 export {};
