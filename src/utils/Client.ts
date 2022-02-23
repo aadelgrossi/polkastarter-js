@@ -1,8 +1,8 @@
 import Web3 from 'web3';
 import { ContractSendMethod } from 'web3-eth-contract';
 
-import Account from '../models/Account';
-import Contract from '../models/Contract';
+import Account from '../models/base/Account';
+import Contract from '../models/base/Contract';
 /* istanbul ignore file */
 
 /**

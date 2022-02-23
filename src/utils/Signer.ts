@@ -38,13 +38,7 @@ type VerifySignatureArgs = {
   signerAddress: string;
 };
 
-type SignAddressesWithSignerArgs = {
-  addresses: string[];
-  accountJson: string;
-  accountMaxAllocations: number[];
-  decimals: number;
-  contractAddress: string;
-  password: string;
+type SignAddressesWithSignerArgs = SignAddressesArgs & {
   signer: EthersSigner;
 };
 

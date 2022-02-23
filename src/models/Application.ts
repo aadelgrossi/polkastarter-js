@@ -5,12 +5,11 @@ import Chains from '../utils/Chains';
 import Network from '../utils/Network';
 import Signer from '../utils/Signer';
 import Wallet from '../utils/Wallet';
-import Account from './Account';
-// import Contract from './Contract';
-import ERC20TokenContract from './ERC20TokenContract';
-import FixedSwapContract from './FixedSwapContract';
-import FixedSwapContractLegacy from './FixedSwapContractLegacy';
-import Staking from './Staking';
+import Account from './base/Account';
+import ERC20TokenContract from './base/ERC20TokenContract';
+import Staking from './base/Staking';
+import FixedSwapContract from './contracts/FixedSwapContract';
+import FixedSwapContractLegacy from './contracts/legacy/FixedSwapContractLegacy';
 
 const TEST_PRIVATE_KEY =
   '0x7f76de05082c4d578219ca35a905f8debe922f1f00b99315ebf0706afc97f132';
