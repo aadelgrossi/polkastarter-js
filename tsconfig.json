@@ -6,14 +6,15 @@
     "target": "es5",
     "moduleResolution": "node",
     "declaration": true,
+    "resolveJsonModule": true,
     "allowJs": true,
-    "rootDir": ".",
+    "rootDir": "src",
     "outDir": "dist"
   },
   "lib": ["es2015"],
-  "include": ["src", "types.d.ts", ".eslintrc.js", "tests/**/*"],
-  "exclude": ["node_modules", "tooling",],
-  "types": ["jest"],
+  "include": ["./src", "types.d.ts"],
+  "exclude": ["node_modules", "tooling", "tests", "dist"],
+  "types": ["mocha"],
   "ts-node": {
     "files": true
   },

@@ -1,7 +1,7 @@
 module.exports = {
   env: {
     node: true,
-    jest: true,
+    mocha: true,
     es2021: true,
   },
   extends: [
@@ -15,7 +15,7 @@ module.exports = {
   parserOptions: {
     root: true,
     ecmaVersion: 'latest',
-    project: './tsconfig.json',
+    project: './tsconfig.eslint.json',
   },
   plugins: ['@typescript-eslint', 'prettier'],
   rules: {
