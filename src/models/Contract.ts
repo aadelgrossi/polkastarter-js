@@ -1,134 +1,174 @@
-import { Account as Web3Account } from 'web3-eth-accounts';
+import { JsonFragment } from '@ethersproject/abi';
+import Web3 from 'web3';
 import { TransactionReceipt, TransactionConfig } from 'web3-core';
-import { JsonFragment } from "@ethersproject/abi";
+import { Account as Web3Account } from 'web3-eth-accounts';
 import { Contract as Web3Contract } from 'web3-eth-contract';
 import { AbiItem } from 'web3-utils';
 
-import Web3 from "web3";
-import Account from "./Account";
+import Account from './Account';
 
 interface Contract {
-	deploy: (account: Account, abi: AbiItem, byteCode: string, args?: any[], callback?: () => void) => Promise<TransactionReceipt>;
-	__metamaskDeploy: (args: MetaMaskDeployArgs) => Promise<TransactionReceipt>;
-	use: (contract_json: any, address: string) => void;
-	send: (account: Web3Account, byteCode: string, value: string, callback: (args: any) => void) => void;
-	getContract: () => Web3Contract;
-	getABI: () => AbiItem;
-	getJSON: () => JsonFragment;
-	getAddress: () => string;
+  deploy: (
+    account: Account,
+    abi: AbiItem,
+    byteCode: string,
+    args?: any[],
+    callback?: () => void
+  ) => Promise<TransactionReceipt>;
+  __metamaskDeploy: (args: MetaMaskDeployArgs) => Promise<TransactionReceipt>;
+  use: (contract_json: any, address: string) => void;
+  send: (
+    account: Web3Account,
+    byteCode: string,
+    value: string,
+    callback: (args: any) => void
+  ) => Promise<any>;
+  getContract: () => Web3Contract;
+  getABI: () => AbiItem;
+  getJSON: () => JsonFragment;
+  getAddress: () => string;
 }
 
-type MetaMaskDeployArgs = { byteCode: string, acc: string, args: any[], callback?: (args: any) => void}
+type MetaMaskDeployArgs = {
+  byteCode: string;
+  acc: string;
+  args: any[];
+  callback?: (args: any) => void;
+};
 
 class ContractImpl implements Contract {
-	private web3: Web3
-	private address: string;
-	private json: any;
-	private abi: AbiItem;
-	private contract: Web3Contract;
+  private web3: Web3;
 
-	constructor(web3: Web3, contract_json, address) {
-		this.web3 = web3;
-		this.address = address;
-		this.contract = new web3.eth.Contract(contract_json.abi, address);
-	}
+  private address: string;
 
-	deploy = async (account: Account, abi: AbiItem, byteCode: string, args?: any[], callback?: () => void) => {
-		try{
-			var res: TransactionReceipt;
-			this.contract = new this.web3.eth.Contract(abi);
-			if (account) {
-				const data = this.contract.deploy({
-					data: byteCode,
-					arguments: args
-				}).encodeABI()
+  private json: any;
 
-				let txSigned = await account.getAccount().signTransaction({
-						data,
-						from: account.getAddress(),
-						gas: 6913388
-					}
-				);
+  private abi: AbiItem;
 
-				res = await this.web3.eth.sendSignedTransaction(txSigned.rawTransaction);
-			} else {
-				const accounts = await this.web3.eth.getAccounts();
-				res = await this.__metamaskDeploy({byteCode, args, acc : accounts[0], callback});
-			}
-			this.address = res.contractAddress;
-			return res;
-		} catch(err) {
-			console.log("err", err);
-			throw err;
-		}
-	}
+  private contract: Web3Contract;
 
-	__metamaskDeploy = async ({ byteCode, args, acc, callback = (args: number) => {} }: MetaMaskDeployArgs) => {
-		const response = new Promise<TransactionReceipt>((resolve, reject) => {
-			try {
-				const contract = this.getContract()
+  constructor(web3: Web3, contract_json: any, address: string) {
+    this.web3 = web3;
+    this.address = address;
+    this.contract = new web3.eth.Contract(contract_json.abi, address);
+  }
 
-				contract
-				.deploy({ data: byteCode, arguments: args })
-				.send({ from: acc })
-				.on('confirmation', (confirmationNumber, receipt) => {
-					callback(confirmationNumber)
-					if (confirmationNumber > 0) {
-						resolve(receipt);
-					}
-				})
-				.on('error', err => { reject(err) })
-			} catch (err) {
-				throw err;
-			}
-		})
+  deploy = async (
+    account: Account,
+    abi: AbiItem,
+    byteCode: string,
+    args?: any[],
+    callback?: () => void
+  ) => {
+    try {
+      let res: TransactionReceipt;
+      this.contract = new this.web3.eth.Contract(abi);
+      if (account) {
+        const data = this.contract
+          .deploy({
+            data: byteCode,
+            arguments: args,
+          })
+          .encodeABI();
 
-		return response;
-	}
+        const txSigned = await account.getAccount().signTransaction({
+          data,
+          from: account.getAddress(),
+          gas: 6913388,
+        });
 
-	use = async(contract_json: any, address: string) => {
-		this.json = contract_json;
-		this.abi = contract_json.abi;
-		this.address = address || this.address;
-		this.contract = new this.web3.eth.Contract(
-			contract_json.abi,
-			this.address
-		);
-	}
+        res = await this.web3.eth.sendSignedTransaction(
+          txSigned.rawTransaction
+        );
+      } else {
+        const accounts = await this.web3.eth.getAccounts();
+        res = await this.__metamaskDeploy({
+          byteCode,
+          args,
+          acc: accounts[0],
+          callback,
+        });
+      }
+      this.address = res.contractAddress;
+      return res;
+    } catch (err) {
+      console.log('err', err);
+      throw err;
+    }
+  };
 
-	send = async (account: Web3Account, byteCode: string, value = '0x0', callback = (args: any) => {}) => {
-		return new Promise( async (resolve, reject) => {
-			const tx: TransactionConfig = {
-				data: byteCode,
-				from: account.address,
-				to: this.address,
-				gas: 4430000,
-				gasPrice : 25000000000,
-				value: value || '0x0'
-			}
+  __metamaskDeploy = async ({
+    byteCode,
+    args,
+    acc,
+    callback,
+  }: MetaMaskDeployArgs) => {
+    const response = new Promise<TransactionReceipt>((resolve, reject) => {
+      const contract = this.getContract();
 
-			const result = await account.signTransaction(tx);
+      contract
+        .deploy({ data: byteCode, arguments: args })
+        .send({ from: acc })
+        .on('confirmation', (confirmationNumber, receipt) => {
+          callback(confirmationNumber);
+          if (confirmationNumber > 0) {
+            resolve(receipt);
+          }
+        })
+        .on('error', (err) => {
+          reject(err);
+        });
+    });
 
-			this.web3.eth
-			.sendSignedTransaction(result.rawTransaction)
-			.on('confirmation', (confirmationNumber, receipt) => {
-				callback(confirmationNumber);
-				if (confirmationNumber > 0){
-					resolve(receipt);
-				}
-			})
-			.on('error', err => { reject(err) });
-		})
+    return response;
+  };
 
-	}
+  use = async (contract_json: any, address: string) => {
+    this.json = contract_json;
+    this.abi = contract_json.abi;
+    this.address = address || this.address;
+    this.contract = new this.web3.eth.Contract(contract_json.abi, this.address);
+  };
 
-	getContract = () => this.contract;
+  send = async (
+    account: Web3Account,
+    byteCode: string,
+    value = '0x0',
+    callback = (_args: any) => {}
+  ) => {
+    return new Promise(async (resolve, reject) => {
+      const tx: TransactionConfig = {
+        data: byteCode,
+        from: account.address,
+        to: this.address,
+        gas: 4430000,
+        gasPrice: 25000000000,
+        value: value || '0x0',
+      };
 
-	getABI = () => this.abi;
+      const result = await account.signTransaction(tx);
 
-	getJSON = () => this.json;
+      this.web3.eth
+        .sendSignedTransaction(result.rawTransaction)
+        .on('confirmation', (confirmationNumber, receipt) => {
+          callback(confirmationNumber);
+          if (confirmationNumber > 0) {
+            resolve(receipt);
+          }
+        })
+        .on('error', (err) => {
+          reject(err);
+        });
+    });
+  };
 
-	getAddress = () => this.address;
+  getContract = () => this.contract;
+
+  getABI = () => this.abi;
+
+  getJSON = () => this.json;
+
+  getAddress = () => this.address;
 }
 
 export default ContractImpl;
