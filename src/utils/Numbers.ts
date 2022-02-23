@@ -5,7 +5,7 @@
 
 import accounting from 'accounting';
 import dayjs from 'dayjs';
-import { Decimal } from 'decimal.js';
+import Decimal from 'decimal.js';
 import { create, all } from 'mathjs';
 import moment, { MomentInputObject } from 'moment';
 
@@ -96,7 +96,10 @@ class Numbers {
    * @param {Integer} decimals Number of decimals
    * @returns {string}
    */
-  toSmartContractDecimals = (value: Decimal, decimals: number): string => {
+  toSmartContractDecimals = (
+    value: Decimal | number,
+    decimals: number
+  ): string => {
     return this.math
       .chain(this.math.bignumber(value))
       .multiply(this.math.bignumber(10 ** decimals))

@@ -1,5 +1,4 @@
 import chai from 'chai';
-import { Decimal } from 'decimal.js';
 
 import { mochaAsync } from '.';
 import { Application } from '../../src';
@@ -13,7 +12,7 @@ context('Signer', () => {
   let app: Application;
   let signer: Signer;
 
-  beforeAll(() => {
+  before(() => {
     app = new Application({ test: true });
     signer = app.getSigner();
   });
@@ -61,11 +60,7 @@ context('Signer', () => {
           '0xA5E5fC6e75A19447544105995C0B6e8e405b63C2',
           '0x00',
         ],
-        accountMaxAllocations: [
-          new Decimal(10),
-          new Decimal(20),
-          new Decimal(10),
-        ],
+        accountMaxAllocations: [10, 20, 10],
         decimals: 18,
         contractAddress: '0xb8f7166496996a7da21cf1f1b04d9b3e26a3d077',
         accountJson: JSON.stringify(jsonAccount),

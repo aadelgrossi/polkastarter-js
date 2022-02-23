@@ -1,4 +1,3 @@
-import Decimal from 'decimal.js';
 import * as ethers from 'ethers';
 
 import Numbers from './Numbers';
@@ -25,7 +24,7 @@ type AddressFromAccountArgs = { accountJson: string; password: string };
 type SignAddressesArgs = {
   addresses: string[];
   accountJson: string;
-  accountMaxAllocations: Decimal[];
+  accountMaxAllocations: number[];
   decimals: number;
   contractAddress: string;
   password: string;
@@ -42,7 +41,7 @@ type VerifySignatureArgs = {
 type SignAddressesWithSignerArgs = {
   addresses: string[];
   accountJson: string;
-  accountMaxAllocations: Decimal[];
+  accountMaxAllocations: number[];
   decimals: number;
   contractAddress: string;
   password: string;
@@ -114,7 +113,7 @@ class Signer {
   }: SignAddressesArgs) => {
     const signer = ethers.Wallet.fromEncryptedJsonSync(accountJson, password);
 
-    return this.signAddressesWithSigner({
+    const response = await this.signAddressesWithSigner({
       addresses,
       accountMaxAllocations,
       contractAddress,
@@ -123,6 +122,8 @@ class Signer {
       password,
       signer,
     });
+
+    return response;
   };
 
   /**
@@ -146,28 +147,30 @@ class Signer {
     let processed = 0;
     let rejected = 0;
 
-    addresses.map(async (address, index) => {
-      const allocation = Numbers.toSmartContractDecimals(
-        accountMaxAllocations[index],
-        decimals
-      );
-      const result = await this._trySignAddress(
-        signer,
-        address,
-        allocation,
-        contractAddress
-      );
-      if (result) {
-        signedAddresses.push({
+    await Promise.all(
+      addresses.map(async (address, index) => {
+        const allocation = Numbers.toSmartContractDecimals(
+          accountMaxAllocations[index],
+          decimals
+        );
+        const result = await this._trySignAddress(
+          signer,
           address,
-          signature: result,
           allocation,
-        });
-        processed += 1;
-      } else {
-        rejected += 1;
-      }
-    });
+          contractAddress
+        );
+        if (result) {
+          signedAddresses.push({
+            address,
+            signature: result,
+            allocation,
+          });
+          processed += 1;
+        } else {
+          rejected += 1;
+        }
+      })
+    );
 
     console.info(processed, 'lines successfully processed');
     console.info(rejected, 'lines rejected');
@@ -182,7 +185,8 @@ class Signer {
    * @returns {string} signedString
    */
   signMessage = async ({ signer, message }: SignMessageArgs) => {
-    return signer.signMessage(message);
+    const response = await signer.signMessage(message);
+    return response;
   };
 
   /**
@@ -233,7 +237,8 @@ class Signer {
       accountMaxAllocation,
       contractAddress
     );
-    return this.signMessage({ signer, message });
+    const response = await this.signMessage({ signer, message });
+    return response;
   };
 
   _trySignAddress = async (
@@ -243,9 +248,9 @@ class Signer {
     contractAddress: string
   ) => {
     const isAddress = ethers.utils.isAddress(address);
-    const addressBigNumber = ethers.BigNumber.from(address).toNumber();
+    const addressBigNumber = ethers.BigNumber.from(address);
 
-    if (isAddress && addressBigNumber !== 0) {
+    if (isAddress && !addressBigNumber.isZero()) {
       return this.signAddress({
         signer,
         address,
