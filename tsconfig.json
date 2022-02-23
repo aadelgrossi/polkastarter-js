@@ -7,12 +7,13 @@
     "moduleResolution": "node",
     "declaration": true,
     "allowJs": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "dist"
   },
   "lib": ["es2015"],
-  "include": ["**/*.ts", "types.d.ts"],
-  "exclude": ["node_modules", "tests", "tooling"],
+  "include": ["src", "types.d.ts", ".eslintrc.js", "tests/**/*"],
+  "exclude": ["node_modules", "tooling",],
+  "types": ["jest"],
   "ts-node": {
     "files": true
   },
