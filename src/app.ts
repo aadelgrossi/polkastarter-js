@@ -53,7 +53,7 @@ class ApplicationImpl implements Application {
 
   private network: Chain;
 
-  private web3: Web3;
+  web3: Web3;
 
   public account: Account;
 

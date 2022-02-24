@@ -17,7 +17,7 @@ interface ERC20TokenContractParams {
 class ERC20TokenContract {
   private acc: Account;
 
-  private params: ERC20TokenContractParams;
+  params: ERC20TokenContractParams;
 
   private client: Client;
 
@@ -106,7 +106,7 @@ class ERC20TokenContract {
     return this.params.decimals;
   }
 
-  async isApproved({ address, amount, spenderAddress, callback }) {
+  async isApproved({ address, amount, spenderAddress, callback = () => {} }) {
     let newAmount = amount;
     const res = await this.client.sendTx({
       web3: this.params.web3,
@@ -119,10 +119,7 @@ class ERC20TokenContract {
       callback,
     });
 
-    const approvedAmount = Numbers.fromDecimals(
-      res as string,
-      await this.getDecimals()
-    );
+    const approvedAmount = Numbers.fromDecimals(res, await this.getDecimals());
 
     if (typeof amount === 'string') {
       newAmount = parseFloat(amount);
