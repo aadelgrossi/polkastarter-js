@@ -1,9 +1,7 @@
 /* eslint-disable import/no-named-as-default */
 import Web3 from 'web3';
 
-import Account from './models/base/Account';
-import ERC20TokenContract from './models/base/ERC20TokenContract';
-import Staking from './models/base/Staking';
+import { Staking, Account, ERC20TokenContract } from './models/base';
 import FixedSwapContract from './models/contracts/FixedSwapContract';
 import FixedSwapContractLegacy from './models/contracts/legacy/FixedSwapContractLegacy';
 import { Chains, Network, Signer, Wallet } from './utils';

@@ -1,8 +1,7 @@
 import Web3 from 'web3';
 
 import { ierc20 } from '../../interfaces';
-import Client from '../../utils/Client';
-import Numbers from '../../utils/Numbers';
+import { Client, Numbers } from '../../utils';
 import Account from './Account';
 import Contract from './Contract';
 
