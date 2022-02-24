@@ -2,7 +2,7 @@ import chai from 'chai';
 
 import { mochaAsync } from '.';
 import { Application } from '../../src';
-import Signer from '../../src/utils/Signer';
+import { Signer } from '../../src/utils';
 
 require('dotenv').config();
 

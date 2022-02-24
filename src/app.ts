@@ -1,15 +1,12 @@
 /* eslint-disable import/no-named-as-default */
 import Web3 from 'web3';
 
-import Chains from '../utils/Chains';
-import Network from '../utils/Network';
-import Signer from '../utils/Signer';
-import Wallet from '../utils/Wallet';
-import Account from './base/Account';
-import ERC20TokenContract from './base/ERC20TokenContract';
-import Staking from './base/Staking';
-import FixedSwapContract from './contracts/FixedSwapContract';
-import FixedSwapContractLegacy from './contracts/legacy/FixedSwapContractLegacy';
+import Account from './models/base/Account';
+import ERC20TokenContract from './models/base/ERC20TokenContract';
+import Staking from './models/base/Staking';
+import FixedSwapContract from './models/contracts/FixedSwapContract';
+import FixedSwapContractLegacy from './models/contracts/legacy/FixedSwapContractLegacy';
+import { Chains, Network, Signer, Wallet } from './utils';
 
 const TEST_PRIVATE_KEY =
   '0x7f76de05082c4d578219ca35a905f8debe922f1f00b99315ebf0706afc97f132';
