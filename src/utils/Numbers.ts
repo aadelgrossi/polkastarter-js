@@ -1,6 +1,5 @@
 /* eslint-disable func-names */
 /* eslint-disable no-plusplus */
-/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-extend-native */
 
 import accounting from 'accounting';
@@ -47,16 +46,16 @@ export const noExponents = (value: number) => {
   return str + z;
 };
 
+const math = create(all, {
+  number: 'BigNumber',
+  precision: 64,
+});
+
 /**
  * Numbers object
  * @constructor Numbers
  */
 class Numbers {
-  private readonly math = create(all, {
-    number: 'BigNumber',
-    precision: 64,
-  });
-
   fromDayMonthYear = (date: MomentInputObject) => {
     const mom = moment().dayOfYear(date.day);
     mom.set('hour', date.hour);
@@ -119,9 +118,9 @@ class Numbers {
     value: Decimal | number,
     decimals: number
   ): string => {
-    return this.math
-      .chain(this.math.bignumber(value))
-      .multiply(this.math.bignumber(10 ** decimals))
+    return math
+      .chain(math.bignumber(value))
+      .multiply(math.bignumber(10 ** decimals))
       .done()
       .toFixed(0);
   };
@@ -133,12 +132,12 @@ class Numbers {
    * @param {Integer} decimals Number of decimals
    * @returns {string}
    */
-  fromDecimals = (value: number | string, decimals: number) => {
-    if (value == null) return 0;
+  fromDecimals = (value: any, decimals: number) => {
+    if (!value) return 0;
 
-    const result = this.math
-      .chain(this.math.bignumber(value))
-      .divide(this.math.bignumber(10 ** decimals))
+    const result = math
+      .chain(math.bignumber(value.toString()))
+      .divide(math.bignumber(10 ** decimals))
       .toString();
 
     return Number(result);
