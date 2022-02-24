@@ -1,20 +1,8 @@
 import Web3 from 'web3';
-import { TransactionReceipt, TransactionConfig } from 'web3-core';
+import { TransactionConfig } from 'web3-core';
 import { Account as Web3Account } from 'web3-eth-accounts';
 
-interface Account {
-  getBalance: () => Promise<string>;
-  getAddress: () => string;
-  getAccount: () => Web3Account;
-  getPrivateKey: () => string;
-  sendEther: (
-    amount: number,
-    address: string,
-    data: string | null
-  ) => Promise<TransactionReceipt>;
-}
-
-class AccountImpl implements Account {
+class Account {
   private web3: Web3;
 
   private account: Web3Account;
@@ -53,4 +41,4 @@ class AccountImpl implements Account {
   };
 }
 
-export default AccountImpl;
+export default Account;

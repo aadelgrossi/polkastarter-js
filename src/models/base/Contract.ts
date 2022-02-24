@@ -1,4 +1,3 @@
-import { JsonFragment } from '@ethersproject/abi';
 import Web3 from 'web3';
 import { TransactionReceipt, TransactionConfig } from 'web3-core';
 import { Account as Web3Account } from 'web3-eth-accounts';
@@ -7,28 +6,6 @@ import { AbiItem } from 'web3-utils';
 
 import Account from './Account';
 
-interface Contract {
-  deploy: (
-    account: Account,
-    abi: AbiItem,
-    byteCode: string,
-    args?: any[],
-    callback?: () => void
-  ) => Promise<TransactionReceipt>;
-  __metamaskDeploy: (args: MetaMaskDeployArgs) => Promise<TransactionReceipt>;
-  use: (contract_json: any, address: string) => void;
-  send: (
-    account: Web3Account,
-    byteCode: string,
-    value: string,
-    callback: (args: any) => void
-  ) => Promise<any>;
-  getContract: () => Web3Contract;
-  getABI: () => AbiItem;
-  getJSON: () => JsonFragment;
-  getAddress: () => string;
-}
-
 type MetaMaskDeployArgs = {
   byteCode: string;
   acc: string;
@@ -36,7 +13,7 @@ type MetaMaskDeployArgs = {
   callback?: (args: any) => void;
 };
 
-class ContractImpl implements Contract {
+class Contract {
   private web3: Web3;
 
   private address: string;
@@ -171,4 +148,4 @@ class ContractImpl implements Contract {
   getAddress = () => this.address;
 }
 
-export default ContractImpl;
+export default Contract;

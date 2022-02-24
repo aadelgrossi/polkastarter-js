@@ -3,7 +3,6 @@ import Web3 from 'web3';
 /* eslint-disable @typescript-eslint/return-await */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-useless-catch */
-import { Account } from '.';
 import {
   stakingAddresses,
   stakingTestAddresses,
@@ -12,6 +11,7 @@ import {
 } from '../../constants/addresses';
 import { staking } from '../../interfaces';
 import { Chains, Client, Numbers } from '../../utils';
+import Account from './Account';
 import Contract from './Contract';
 import ERC20TokenContract from './ERC20TokenContract';
 
