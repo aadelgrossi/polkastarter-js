@@ -24,6 +24,7 @@ type GetUserACcountParams = { privateKey: string };
 type GetFixedSwapContractArgs = {
   tokenAddress: string;
   contractAddress?: string;
+  decimals?: number;
 };
 type GetStakingArgs = { tokenAddress?: string; contractAddress?: string };
 type GetTokenContractArgs = { tokenAddress: string };
@@ -54,7 +55,7 @@ class ApplicationImpl implements Application {
 
   private web3: Web3;
 
-  private account: Account;
+  public account: Account;
 
   constructor(args: ConstructorArgs) {
     const { test = false, network = 'ETH', web3 } = args;
