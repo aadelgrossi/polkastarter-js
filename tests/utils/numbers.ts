@@ -33,7 +33,7 @@ context('Numbers', () => {
           18
         )
       ).to.equal('17234523453345333');
-      expect(Numbers.fromDecimals('97000000000000000', 18)).to.equal('0.097');
+      expect(Numbers.fromDecimals('97000000000000000', 18)).to.equal(0.097);
     })
   );
 });

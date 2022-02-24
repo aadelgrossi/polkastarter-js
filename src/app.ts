@@ -1,6 +1,6 @@
-/* eslint-disable import/no-named-as-default */
 import Web3 from 'web3';
 
+import { SupportedNetworks, networksEnum } from './constants/networks';
 import { Staking, Account, ERC20TokenContract } from './models/base';
 import FixedSwapContract from './models/contracts/FixedSwapContract';
 import FixedSwapContractLegacy from './models/contracts/legacy/FixedSwapContractLegacy';
@@ -18,8 +18,11 @@ const TEST_PRIVATE_KEY =
  * @param {Web3=} web3 Custom Web3 instance. If not provided the Application will instance it for you. (Default: undefined)
  */
 
-type Chain = 'ETH' | 'BSC' | 'MATIC' | 'DOT';
-type ConstructorArgs = { test: boolean; network?: Chain; web3?: Web3 };
+type ConstructorArgs = {
+  test: boolean;
+  network?: SupportedNetworks;
+  web3?: Web3;
+};
 type GetUserACcountParams = { privateKey: string };
 type GetFixedSwapContractArgs = {
   tokenAddress: string;
@@ -29,29 +32,12 @@ type GetFixedSwapContractArgs = {
 type GetStakingArgs = { tokenAddress?: string; contractAddress?: string };
 type GetTokenContractArgs = { tokenAddress: string };
 
-interface Application {
-  startWithoutMetamask: () => void;
-  start: () => void;
-  login: () => void;
-  __getUserAccount: (args: GetUserACcountParams) => Account;
-  getSigner: () => Signer;
-  getNetworkUtils: () => Network;
-  getWalletUtils: () => Wallet;
-  getFixedSwapContract: (
-    args: GetFixedSwapContractArgs
-  ) => Promise<FixedSwapContract | FixedSwapContractLegacy>;
-  getERC20TokenContract: (args: GetTokenContractArgs) => ERC20TokenContract;
-  getETHNetwork: () => Promise<string>;
-  getAddress: () => Promise<string>;
-  getETHBalance: () => Promise<string>;
-}
-
-class ApplicationImpl implements Application {
+class Application {
   private test: boolean;
 
   private mainnet: boolean;
 
-  private network: Chain;
+  private network: SupportedNetworks;
 
   web3: Web3;
 
@@ -235,7 +221,6 @@ class ApplicationImpl implements Application {
    */
   getETHNetwork = async () => {
     const netId = await this.web3.eth.net.getId();
-    const networksEnum = Chains.getNetworksEnum();
     const networkName = networksEnum.hasOwnProperty(netId)
       ? networksEnum[netId]
       : 'Unknown';
@@ -262,4 +247,4 @@ class ApplicationImpl implements Application {
   };
 }
 
-export default ApplicationImpl;
+export default Application;
