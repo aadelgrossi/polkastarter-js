@@ -188,7 +188,7 @@ class Application {
         contractAddress,
         acc: this.test ? this.account : null,
       });
-      contract.isETHTrade();
+      await contract.isETHTrade();
 
       return contract;
     } catch (err) {

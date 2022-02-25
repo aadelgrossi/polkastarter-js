@@ -21,7 +21,7 @@ type SendTxArgs = {
   web3: Web3;
   acc: Account;
   contract: Contract;
-  f: ContractSendMethod & { call: (args?: any) => void };
+  f: Partial<ContractSendMethod> & { call: (args?: any) => void };
   call?: boolean;
   value?: string;
   callback?: () => void;

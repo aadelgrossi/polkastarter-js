@@ -87,12 +87,12 @@ class FixedSwapContract extends BaseSwapContract {
     minimumRaise = 0,
     feeAmount = 1,
     hasWhitelisting = false,
-    callback,
+    callback = () => {},
     ERC20TradingAddress = '0x0000000000000000000000000000000000000000',
     isPOLSWhitelist = false,
     tradingDecimals = 0 /* To be the decimals of the currency in case (ex : USDT -> 9; ETH -> 18) */,
     vestingSchedule = [],
-    vestingStart,
+    vestingStart = null,
     vestingCliff = 0,
     vestingDuration = 0,
   }) => {
@@ -639,11 +639,13 @@ class FixedSwapContract extends BaseSwapContract {
    * @returns {Array | Integer} _ids
    */
   getAddressPurchaseIds = async ({ address }) => {
-    const res = (await this.executeContractMethod(
-      this.getContractMethods().getMyPurchases(address),
-      true
-    )) as Array<any>;
-    return res.map((id) => Numbers.fromHex(id));
+    const methodToExecute = this.getContractMethods().getMyPurchases(address);
+    const purchaseIds = await this.executeContractMethod({
+      methodToExecute,
+      call: true,
+    });
+
+    return (purchaseIds as number[]).map((id) => Numbers.fromHex(id));
   };
 
   /**
@@ -747,17 +749,20 @@ class FixedSwapContract extends BaseSwapContract {
       cost,
       await this.getTradingDecimals()
     );
-
-    return this.executeContractMethod(
-      this.getContractMethods().swapWithSig(
-        amountWithDecimals,
-        accountMaxAmount,
-        signature
-      ),
-      false,
-      (await this.isETHTrade()) ? costToDecimals : 0,
-      callback
+    const methodToExecute = this.getContractMethods().swapWithSig(
+      amountWithDecimals,
+      accountMaxAmount,
+      signature
     );
+
+    const value = (await this.isETHTrade()) ? costToDecimals : '0';
+
+    return this.executeContractMethod({
+      methodToExecute,
+      call: false,
+      value,
+      callback,
+    });
   };
 
   /**
@@ -785,12 +790,18 @@ class FixedSwapContract extends BaseSwapContract {
       signature = '0x00';
     }
 
-    return this.executeContractMethod(
-      this.getContractMethods().swap(amountWithDecimals, signature),
-      false,
-      (await this.isETHTrade()) ? costToDecimals : 0,
-      callback
+    const methodToExecute = this.getContractMethods().swap(
+      amountWithDecimals,
+      signature
     );
+    const value = (await this.isETHTrade()) ? costToDecimals : '0';
+
+    return this.executeContractMethod({
+      methodToExecute,
+      call: false,
+      value,
+      callback,
+    });
   };
 
   __oldSwap = async ({ tokenAmount, callback }) => {
@@ -822,12 +833,17 @@ class FixedSwapContract extends BaseSwapContract {
       this.params.contractAddress
     );
 
-    return this.executeContractMethod(
-      contract.getContract().methods.swap(amountWithDecimals),
-      false,
-      (await this.isETHTrade()) ? costToDecimals : 0,
-      callback
-    );
+    const methodToExecute = contract
+      .getContract()
+      .methods.swap(amountWithDecimals);
+    const value = (await this.isETHTrade()) ? costToDecimals : '';
+
+    return this.executeContractMethod({
+      methodToExecute,
+      call: false,
+      value,
+      callback,
+    });
   };
 
   /**
@@ -935,12 +951,9 @@ class FixedSwapContract extends BaseSwapContract {
       await this.getDecimals()
     );
 
-    return this.executeContractMethod(
-      this.getContractMethods().fund(amountWithDecimals),
-      null,
-      null,
-      callback
-    );
+    const methodToExecute = this.getContractMethods().fund(amountWithDecimals);
+
+    return this.executeContractMethod({ methodToExecute, callback });
   };
 }
 

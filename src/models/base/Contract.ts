@@ -27,12 +27,14 @@ class Contract {
   constructor(web3: Web3, contract_json: any, address: string) {
     this.web3 = web3;
     this.address = address;
+    this.json = contract_json;
+    this.abi = contract_json.abi;
     this.contract = new web3.eth.Contract(contract_json.abi, address);
   }
 
   deploy = async (
     account: Account,
-    abi: AbiItem,
+    abi: any,
     byteCode: string,
     args?: any[],
     callback?: () => void
