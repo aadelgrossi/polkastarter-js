@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable array-callback-return */
 /* eslint-disable no-param-reassign */
 /* eslint-disable radix */
@@ -796,7 +797,7 @@ class FixedSwapContractLegacy {
    * @function approveFundERC20
    * @description Approve the pool to use approved tokens for sale
    */
-  approveFundERC20 = async ({ tokenAmount, callback }) => {
+  approveFundERC20 = async ({ tokenAmount, callback = () => {} }) => {
     return await this.params.erc20TokenContract.approve({
       address: this.getAddress(),
       amount: tokenAmount,
