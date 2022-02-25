@@ -1,10 +1,10 @@
+import Web3 from 'web3';
+
 /* eslint-disable array-callback-return */
 /* eslint-disable @typescript-eslint/return-await */
 /* eslint-disable no-useless-catch */
-import Client from '../../../utils/Client';
-import Numbers from '../../../utils/Numbers';
-import Contract from '../../base/Contract';
-import ERC20TokenContract from '../../base/ERC20TokenContract';
+import { Client, Numbers } from '../../../utils';
+import { Account, Contract, ERC20TokenContract } from '../../base';
 
 /**
  * Base Swap Contract Object
@@ -13,7 +13,34 @@ import ERC20TokenContract from '../../base/ERC20TokenContract';
  * @param {Address} contractAddress ? (opt)
  */
 
+type BaseSwapContractParams = {
+  web3: Web3;
+  contractAddress: string;
+  contract: Contract;
+  erc20TokenContract?: ERC20TokenContract;
+  tradingERC20Contract?: ERC20TokenContract;
+};
+
+type ExecuteContractMethodArgs = {
+  methodToExecute: () => void;
+  call?: boolean;
+  value?: string;
+  callback?: (args?: any) => void;
+};
+
 class BaseSwapContract {
+  web3: Web3;
+
+  private version: string;
+
+  acc: Account;
+
+  private contractInterface: any;
+
+  private client: Client;
+
+  params: BaseSwapContractParams;
+
   constructor({
     web3,
     contractAddress = null /* If not deployed */,
@@ -235,7 +262,7 @@ class BaseSwapContract {
     if (hasMinimumRaise) {
       const tokensAllocated = await this.tokensAllocated();
       const minimumRaise = await this.minimumRaise();
-      return parseFloat(tokensAllocated) > parseFloat(minimumRaise);
+      return tokensAllocated > minimumRaise;
     }
     return true;
   }
@@ -257,11 +284,10 @@ class BaseSwapContract {
    * @description Safe Pull all tokens & ETH
    */
   safePull = async () => {
-    return this.executeContractMethod(
-      this.getContractMethods().safePull(),
-      null,
-      0
-    );
+    return this.executeContractMethod({
+      methodToExecute: this.getContractMethods().safePull(),
+      call: null,
+    });
   };
 
   /**
@@ -280,13 +306,12 @@ class BaseSwapContract {
    * @returns {Integer} Amount in ETH
    */
   async withdrawableFunds() {
-    let res = 0;
     const hasFinalized = await this.hasFinalized();
     const wasMinimumRaiseReached = await this.minimumReached();
     if (hasFinalized && wasMinimumRaiseReached) {
-      res = await this.getBalance();
+      const balance = await this.getBalance();
+      return balance;
     }
-    return res;
   }
 
   /**
@@ -424,7 +449,7 @@ class BaseSwapContract {
    * @returns {Boolean}
    */
   async isETHTrade() {
-    return await this.params.contract.getContract().methods.isETHTrade().call();
+    return this.params.contract.getContract().methods.isETHTrade().call();
   }
 
   /**
@@ -588,8 +613,8 @@ class BaseSwapContract {
    * @param {string} address
    * @returns {boolean} isBlackListed
    */
-  isBlacklisted = async ({ address }) => {
-    return await this.getContractMethods().isBlacklisted(address).call();
+  isBlacklisted = async ({ address }): Promise<boolean> => {
+    return this.getContractMethods().isBlacklisted(address).call();
   };
 
   /** ************************************
@@ -602,8 +627,8 @@ class BaseSwapContract {
    * @returns {boolean}
    */
 
-  async isPaused() {
-    return await this.getContractMethods().paused().call();
+  async isPaused(): Promise<boolean> {
+    return this.getContractMethods().paused().call();
   }
 
   /**
@@ -612,7 +637,9 @@ class BaseSwapContract {
    * @description Pause Contract
    */
   async pauseContract() {
-    return this.executeContractMethod(this.getContractMethods().pause());
+    const pauseArgs =
+      this.getContractMethods().pause() as ExecuteContractMethodArgs;
+    return this.executeContractMethod(pauseArgs);
   }
 
   /**
@@ -621,7 +648,9 @@ class BaseSwapContract {
    * @description Unpause Contract
    */
   async unpauseContract() {
-    return this.executeContractMethod(this.getContractMethods().unpause());
+    const unpauseArgs =
+      this.getContractMethods().unpause() as ExecuteContractMethodArgs;
+    return this.executeContractMethod(unpauseArgs);
   }
 
   /** ************************************
@@ -661,21 +690,21 @@ class BaseSwapContract {
     return this.params.erc20TokenContract;
   }
 
-  executeContractMethod = async (
+  executeContractMethod = async ({
     methodToExecute,
     call = false,
-    value,
-    callback
-  ) => {
-    return this.client.sendTx(
-      this.params.web3,
-      this.acc,
-      this.params.contract,
-      methodToExecute,
+    value = '0',
+    callback,
+  }: ExecuteContractMethodArgs) => {
+    return this.client.sendTx({
+      web3: this.params.web3,
+      acc: this.acc,
+      contract: this.params.contract,
+      f: methodToExecute,
       call,
       value,
-      callback
-    );
+      callback,
+    });
   };
 
   assertERC20Info = async () => {
