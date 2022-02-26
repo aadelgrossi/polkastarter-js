@@ -24,7 +24,7 @@ class Contract {
 
   private contract: Web3Contract;
 
-  constructor(web3: Web3, contract_json: any, address: string) {
+  constructor(web3: Web3, contract_json: any, address?: string) {
     this.web3 = web3;
     this.address = address;
     this.json = contract_json;
