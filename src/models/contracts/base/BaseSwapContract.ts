@@ -1,3 +1,4 @@
+import { BigNumber } from 'mathjs';
 import Web3 from 'web3';
 
 /* eslint-disable array-callback-return */
@@ -31,7 +32,7 @@ type ExecuteContractMethodArgs = {
 class BaseSwapContract {
   web3: Web3;
 
-  private version: string;
+  version: string;
 
   acc: Account;
 
@@ -91,10 +92,9 @@ class BaseSwapContract {
    * @returns {Boolean}
    */
   async hasWhitelisting() {
-    return await this.params.contract
-      .getContract()
-      .methods.hasWhitelisting()
-      .call();
+    return (await this.getContractMethods()
+      .hasWhitelisting()
+      .call()) as boolean;
   }
 
   /**
@@ -104,11 +104,9 @@ class BaseSwapContract {
    * @returns {Boolean}
    */
   async isWhitelisted({ address }) {
-    const res = await this.params.contract
-      .getContract()
-      .methods.isWhitelisted(address)
-      .call();
-    return res === true;
+    return (await this.getContractMethods()
+      .isWhitelisted(address)
+      .call()) as boolean;
   }
 
   /**
@@ -118,9 +116,9 @@ class BaseSwapContract {
    * @description Modifies if the pool has whitelisting or not
    */
   setHasWhitelisting = async ({ hasWhitelist }) => {
-    return this.executeContractMethod(
-      this.getContractMethods().setHasWhitelisting(hasWhitelist)
-    );
+    const methodToExecute =
+      this.getContractMethods().setHasWhitelisting(hasWhitelist);
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -146,9 +144,8 @@ class BaseSwapContract {
       }
     });
 
-    return this.executeContractMethod(
-      this.getContractMethods().addToWhitelist(address)
-    );
+    const methodToExecute = this.getContractMethods().addToWhitelist(address);
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -158,9 +155,8 @@ class BaseSwapContract {
    * @description remove WhiteListed Address
    */
   removeWhitelistedAddress = async ({ address, index }) => {
-    return this.executeContractMethod(
-      this.getContractMethods().remove(address, index)
-    );
+    const methodToExecute = this.getContractMethods().remove(address, index);
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -169,10 +165,10 @@ class BaseSwapContract {
    * @param {string} address
    */
   setSignerPublicAddress = async ({ address }) => {
+    const methodToExecute =
+      this.getContractMethods().setSignerPublicAddress(address);
     try {
-      return await this.executeContractMethod(
-        this.getContractMethods().setSignerPublicAddress(address)
-      );
+      return await this.executeContractMethod({ methodToExecute });
     } catch (err) {
       throw err;
     }
@@ -221,11 +217,11 @@ class BaseSwapContract {
    * @param {Address} toAddress
    */
   removeOtherERC20Tokens = async ({ tokenAddress, toAddress }) => {
-    return this.executeContractMethod(
-      this.params.contract
-        .getContract()
-        .methods.removeOtherERC20Tokens(tokenAddress, toAddress)
+    const methodToExecute = this.getContractMethods().removeOtherERC20Tokens(
+      tokenAddress,
+      toAddress
     );
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -234,10 +230,9 @@ class BaseSwapContract {
    * @returns {Integer} Amount in Tokens
    */
   async minimumRaise() {
-    return Numbers.fromDecimals(
-      await this.params.contract.getContract().methods.minimumRaise().call(),
-      await this.getTradingDecimals()
-    );
+    const value = await this.getContractMethods().minimumRaise().call();
+    const decimals = await this.getTradingDecimals();
+    return Numbers.fromDecimals(value, decimals);
   }
 
   /**
@@ -246,10 +241,9 @@ class BaseSwapContract {
    * @returns {Boolean}
    */
   async hasMinimumRaise() {
-    return await this.params.contract
-      .getContract()
-      .methods.hasMinimumRaise()
-      .call();
+    return (await this.getContractMethods()
+      .hasMinimumRaise()
+      .call()) as boolean;
   }
 
   /**
@@ -295,9 +289,8 @@ class BaseSwapContract {
    * @description Withdraw all funds from tokens sold
    */
   withdrawFunds = async () => {
-    return this.executeContractMethod(
-      this.getContractMethods().withdrawFunds()
-    );
+    const methodToExecute = this.getContractMethods().withdrawFunds();
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -312,6 +305,8 @@ class BaseSwapContract {
       const balance = await this.getBalance();
       return balance;
     }
+
+    return 0;
   }
 
   /**
@@ -341,9 +336,9 @@ class BaseSwapContract {
    * @param {Integer} purchaseId
    */
   redeemGivenMinimumGoalNotAchieved = async ({ purchaseId }) => {
-    return this.executeContractMethod(
-      this.getContractMethods().redeemGivenMinimumGoalNotAchieved(purchaseId)
-    );
+    const methodToExecute =
+      this.getContractMethods().redeemGivenMinimumGoalNotAchieved(purchaseId);
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -353,13 +348,15 @@ class BaseSwapContract {
    * @description Modifies the max allocation
    */
   setIndividualMaximumAmount = async ({ individualMaximumAmount }) => {
+    const decimals = await this.getTradingDecimals();
     const maxAmount = Numbers.toSmartContractDecimals(
       individualMaximumAmount,
-      await this.getTradingDecimals()
+      decimals
     );
-    return this.executeContractMethod(
-      this.getContractMethods().setIndividualMaximumAmount(maxAmount)
-    );
+    const methodToExecute =
+      this.getContractMethods().setIndividualMaximumAmount(maxAmount);
+
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -368,13 +365,12 @@ class BaseSwapContract {
    * @returns {Integer}
    */
   async individualMaximumAmount() {
-    return Numbers.fromDecimals(
-      await this.params.contract
-        .getContract()
-        .methods.individualMaximumAmount()
-        .call(),
-      await this.getTradingDecimals()
-    );
+    const individualMaxAmount = await this.getContractMethods()
+      .individualMaximumAmount()
+      .call();
+    const decimals = await this.getTradingDecimals();
+
+    return Numbers.fromDecimals(individualMaxAmount, decimals);
   }
 
   /**
@@ -481,9 +477,11 @@ class BaseSwapContract {
    * @returns {Date}
    */
   async startDate() {
-    return Numbers.fromSmartContractTimeToMinutes(
-      await this.getContractMethods().startDate().call()
-    );
+    const contractMethods = await this.getContractMethods();
+    const result = (await contractMethods.startDate().call()) as BigNumber;
+    const startDate = Numbers.fromSmartContractTimeToMinutes(result.toNumber());
+
+    return startDate;
   }
 
   /**
@@ -492,9 +490,11 @@ class BaseSwapContract {
    * @returns {Date}
    */
   async endDate() {
-    return Numbers.fromSmartContractTimeToMinutes(
-      await this.getContractMethods().endDate().call()
-    );
+    const contractMethods = await this.getContractMethods();
+    const result = (await contractMethods.endDate().call()) as BigNumber;
+    const endDate = Numbers.fromSmartContractTimeToMinutes(result.toNumber());
+
+    return endDate;
   }
 
   /**
@@ -504,11 +504,11 @@ class BaseSwapContract {
    * @description Modifies the end date for the pool
    */
   setEndDate = async ({ endDate }) => {
-    return this.executeContractMethod(
-      this.getContractMethods().setEndDate(
-        Numbers.timeToSmartContractTime(endDate)
-      )
-    );
+    const contractMethods = await this.getContractMethods();
+    const input = Numbers.timeToSmartContractTime(endDate);
+    const methodToExecute = await contractMethods.setEndDate(input);
+
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -518,11 +518,11 @@ class BaseSwapContract {
    * @description Modifies the start date for the pool
    */
   setStartDate = async ({ startDate }) => {
-    return this.executeContractMethod(
-      this.getContractMethods().setStartDate(
-        Numbers.timeToSmartContractTime(startDate)
-      )
-    );
+    const contractMethods = await this.getContractMethods();
+    const input = Numbers.timeToSmartContractTime(startDate);
+    const methodToExecute = await contractMethods.setStartDate(input);
+
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -531,7 +531,7 @@ class BaseSwapContract {
    * @returns {Boolean}
    */
   async isFinalized() {
-    return await this.getContractMethods().hasFinalized().call();
+    return (await this.getContractMethods().hasFinalized().call()) as boolean;
   }
 
   /**
@@ -540,7 +540,7 @@ class BaseSwapContract {
    * @returns {Boolean}
    */
   async isOpen() {
-    return await this.getContractMethods().isOpen().call();
+    return (await this.getContractMethods().isOpen().call()) as boolean;
   }
 
   /**
@@ -549,7 +549,7 @@ class BaseSwapContract {
    * @returns {Boolean}
    */
   async hasStarted() {
-    return await this.params.contract.getContract().methods.hasStarted().call();
+    return (await this.getContractMethods().hasStarted().call()) as boolean;
   }
 
   /**
@@ -558,10 +558,7 @@ class BaseSwapContract {
    * @returns {Boolean}
    */
   async hasFinalized() {
-    return await this.params.contract
-      .getContract()
-      .methods.hasFinalized()
-      .call();
+    return (await this.getContractMethods().hasFinalized().call()) as boolean;
   }
 
   /**
@@ -569,8 +566,8 @@ class BaseSwapContract {
    * @description Verify if the Token Sale in not open yet
    * @returns {Boolean}
    */
-  async isPreStart() {
-    return await this.params.contract.getContract().methods.isPreStart().call();
+  async isPreStart(): Promise<boolean> {
+    return (await this.getContractMethods().isPreStart().call()) as boolean;
   }
 
   /** ************************************
@@ -583,10 +580,9 @@ class BaseSwapContract {
    * @param {string} address
    */
   addToBlacklist = async ({ address }) => {
+    const methodToExecute = this.getContractMethods().addToBlacklist(address);
     try {
-      return await this.executeContractMethod(
-        this.params.contract.getContract().methods.addToBlacklist(address)
-      );
+      return await this.executeContractMethod({ methodToExecute });
     } catch (err) {
       throw err;
     }
@@ -598,10 +594,13 @@ class BaseSwapContract {
    * @param {string} address
    */
   removeFromBlacklist = async ({ address }) => {
+    const methodToExecute =
+      this.getContractMethods().removeFromBlacklist(address);
+
     try {
-      return await this.executeContractMethod(
-        this.params.contract.getContract().methods.removeFromBlacklist(address)
-      );
+      return await this.executeContractMethod({
+        methodToExecute,
+      });
     } catch (err) {
       throw err;
     }
@@ -627,8 +626,8 @@ class BaseSwapContract {
    * @returns {boolean}
    */
 
-  async isPaused(): Promise<boolean> {
-    return this.getContractMethods().paused().call();
+  async isPaused() {
+    return (await this.getContractMethods().paused().call()) as boolean;
   }
 
   /**
@@ -637,9 +636,8 @@ class BaseSwapContract {
    * @description Pause Contract
    */
   async pauseContract() {
-    const pauseArgs =
-      this.getContractMethods().pause() as ExecuteContractMethodArgs;
-    return this.executeContractMethod(pauseArgs);
+    const methodToExecute = this.getContractMethods().pause();
+    return this.executeContractMethod({ methodToExecute });
   }
 
   /**
@@ -648,9 +646,8 @@ class BaseSwapContract {
    * @description Unpause Contract
    */
   async unpauseContract() {
-    const unpauseArgs =
-      this.getContractMethods().unpause() as ExecuteContractMethodArgs;
-    return this.executeContractMethod(unpauseArgs);
+    const methodToExecute = this.getContractMethods().unpause();
+    return this.executeContractMethod({ methodToExecute });
   }
 
   /** ************************************
@@ -667,7 +664,7 @@ class BaseSwapContract {
    * @param {Address} Address
    */
   getSmartContractVersion = async () => {
-    return await this.getContractMethods().getAPIVersion().call();
+    return (await this.getContractMethods().getAPIVersion().call()) as string;
   };
 
   getContractMethods() {
