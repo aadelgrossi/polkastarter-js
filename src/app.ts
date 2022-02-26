@@ -2,6 +2,7 @@ import Web3 from 'web3';
 
 import { SupportedNetworks, networksEnum } from './constants/networks';
 import { Staking, Account, ERC20TokenContract } from './models/base';
+import { FixedNFTSwapContract } from './models/contracts';
 import FixedSwapContract from './models/contracts/FixedSwapContract';
 import FixedSwapContractLegacy from './models/contracts/legacy/FixedSwapContractLegacy';
 import { Chains, Network, Signer, Wallet } from './utils';
@@ -200,6 +201,31 @@ class Application {
         acc: this.test ? this.account : null,
       });
     }
+  };
+
+  /**
+   * @function getFixedNFTSwapContract
+   * @param {string=} contractAddress The swap contract address, in case t hat has already been instanced. (Default = null)
+   * @description Returns Fixed NFT Swap instance
+   */
+  getFixedNFTSwapContract = async ({ contractAddress = null }) => {
+    if (!contractAddress) {
+      // Not deployed
+      return new FixedNFTSwapContract({
+        web3: this.web3,
+        contractAddress,
+        acc: this.test ? this.account : null,
+      });
+    }
+    // Deployed
+    const contract = new FixedNFTSwapContract({
+      web3: this.web3,
+      contractAddress,
+      acc: this.test ? this.account : null,
+    });
+
+    await contract.isETHTrade();
+    return contract;
   };
 
   /**
