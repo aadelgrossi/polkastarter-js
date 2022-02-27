@@ -1,7 +1,3 @@
-/* eslint-disable no-await-in-loop */
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable @typescript-eslint/return-await */
-/* eslint-disable no-param-reassign */
 import _ from 'lodash';
 import { BigNumber } from 'mathjs';
 import moment from 'moment';
@@ -69,6 +65,8 @@ class FixedNFTSwapContract extends BaseSwapContract {
       throw new Error('Fee Amount has to be >= 1');
     }
 
+    let decimals = tradingDecimals;
+
     if (
       ERC20TradingAddress !== '0x0000000000000000000000000000000000000000' &&
       !tradingDecimals
@@ -78,7 +76,7 @@ class FixedNFTSwapContract extends BaseSwapContract {
       );
     } else {
       /* is ETH Trade */
-      tradingDecimals = 18;
+      decimals = 18;
     }
 
     let totalRaise = 0;
@@ -86,10 +84,7 @@ class FixedNFTSwapContract extends BaseSwapContract {
     const finalcategoriesPrice = categoriesSupply.map((supply, index) => {
       totalRaise += categoriesSupply * categoriesPrice[index];
 
-      return Numbers.toSmartContractDecimals(
-        categoriesPrice[index],
-        tradingDecimals
-      );
+      return Numbers.toSmartContractDecimals(categoriesPrice[index], decimals);
     });
 
     if (minimumRaise !== 0 && minimumRaise > totalRaise) {
@@ -122,17 +117,12 @@ class FixedNFTSwapContract extends BaseSwapContract {
       }
     }
 
-    if (!individualMaximumAmount) {
-      individualMaximumAmount =
-        totalRaise; /* Set Max Amount to Unlimited if 0 */
-    }
-
     const params = [
       Numbers.timeToSmartContractTime(startDate),
       Numbers.timeToSmartContractTime(endDate),
       Numbers.timeToSmartContractTime(distributionDate),
       Numbers.toSmartContractDecimals(
-        individualMaximumAmount,
+        !individualMaximumAmount ? totalRaise : individualMaximumAmount,
         await this.getTradingDecimals()
       ),
       Numbers.toSmartContractDecimals(
@@ -297,7 +287,7 @@ class FixedNFTSwapContract extends BaseSwapContract {
    * @returns {Integer} Amount in Tokens
    */
   async totalCost() {
-    return await this.getContractMethods().maximumRaise().call();
+    return this.getContractMethods().maximumRaise().call();
   }
 
   /**
@@ -349,12 +339,15 @@ class FixedNFTSwapContract extends BaseSwapContract {
       .call();
     const purchases = [];
 
-    for (const id of purchaseIds) {
-      if (id !== undefined) {
-        const purchase = await this.getPurchase({ purchaseId: Number(id) });
-        purchases.push(purchase);
-      }
-    }
+    await Promise.all(
+      purchaseIds.map(async (id) => {
+        if (id) {
+          const purchase = await this.getPurchase({ purchaseId: Number(id) });
+          purchases.push(purchase);
+        }
+      })
+    );
+
     return purchases;
   };
 

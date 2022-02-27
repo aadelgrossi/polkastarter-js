@@ -1,6 +1,4 @@
 /* eslint-disable mocha/no-setup-in-describe */
-/* eslint-disable @typescript-eslint/return-await */
-/* eslint-disable radix */
 import chai from 'chai';
 import { providers } from 'ethers';
 import ganache from 'ganache-core';
@@ -72,19 +70,18 @@ context('NFT Contract', () => {
     const date = new Date().getTime() / 1000;
     _currentTime =
       date + (await ethersProvider.send('evm_increaseTime', [time]));
-    return await ethersProvider.send('evm_mine', []);
+    return ethersProvider.send('evm_mine', []);
   };
 
   before(
     mochaAsync(async () => {
       return new Promise<void>(async (resolve) => {
         // Instance Application
+        const network = (process.env.CHAIN_NAME as SupportedNetworks) || 'ETH';
         app = new Application({
           test: true,
-          network: isRealChain
-            ? (process.env.CHAIN_NAME as SupportedNetworks)
-            : 'ETH',
-          web3: isRealChain ? undefined : getWeb3(),
+          network,
+          web3: getWeb3(),
         });
         app.web3.eth.transactionConfirmationBlocks = 1;
 
