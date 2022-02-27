@@ -16,7 +16,7 @@ type MetaMaskDeployArgs = {
 class Contract {
   private web3: Web3;
 
-  private address: string;
+  address: string;
 
   private json: any;
 

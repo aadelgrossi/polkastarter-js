@@ -35,6 +35,7 @@ module.exports = {
     'mocha/no-mocha-arrows': 'off',
     'no-underscore-dangle': 'off',
     '@typescript-eslint/default-param-last': 'off',
+    '@typescript-eslint/return-await': 'off',
     '@typescript-eslint/no-use-before-define': ['error'],
     'no-param-reassign': ['error', { props: false }],
     'consistent-return': 'off',
@@ -46,14 +47,8 @@ module.exports = {
         argsIgnorePattern: '_',
       },
     ],
-    '@typescript-eslint/naming-convention': [
-      'error',
-      {
-        selector: 'variable',
-        format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
-        leadingUnderscore: 'allow',
-      },
-    ],
+    'radix': 'off',
+    '@typescript-eslint/naming-convention': 'off',
     'import/order': [
       'error',
       {

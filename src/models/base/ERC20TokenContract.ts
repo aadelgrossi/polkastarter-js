@@ -7,12 +7,18 @@ import Contract from './Contract';
 
 let self;
 
-interface ERC20TokenContractParams {
+type ERC20TokenContractParams = {
   web3: Web3;
   contractAddress: string;
   contract: Contract;
   decimals: number | null;
-}
+};
+
+type ERC20TokenContractConstructorArgs = {
+  web3: Web3;
+  contractAddress: string;
+  acc?: Account;
+};
 
 class ERC20TokenContract {
   private acc: Account;
@@ -21,7 +27,11 @@ class ERC20TokenContract {
 
   private client: Client;
 
-  constructor({ contractAddress, web3, acc }) {
+  constructor({
+    contractAddress,
+    web3,
+    acc,
+  }: ERC20TokenContractConstructorArgs) {
     if (acc) {
       this.acc = acc;
     }
@@ -133,15 +143,15 @@ class ERC20TokenContract {
       amount,
       await this.getDecimals()
     );
+
+    const f = this.params.contract
+      .getContract()
+      .methods.approve(address, amountWithDecimals);
     return this.client.sendTx({
       web3: this.params.web3,
       acc: this.acc,
       contract: this.params.contract,
-      f: this.params.contract
-        .getContract()
-        .methods.approve(address, amountWithDecimals),
-      call: null,
-      value: null,
+      f,
       callback,
     });
   }

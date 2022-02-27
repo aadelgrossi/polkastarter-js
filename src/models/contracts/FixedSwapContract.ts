@@ -1,21 +1,13 @@
-/* eslint-disable block-scoped-var */
-/* eslint-disable vars-on-top */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-await-in-loop */
-/* eslint-disable radix */
 /* eslint-disable @typescript-eslint/return-await */
 /* eslint-disable no-bitwise */
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable no-param-reassign */
-/* eslint-disable no-useless-catch */
 import { Decimal } from 'decimal.js';
-import * as ethers from 'ethers';
 import _ from 'lodash';
 import moment from 'moment';
 
 import { fixedswap } from '../../interfaces';
 import DeploymentService from '../../services/DeploymentService';
-import Client from '../../utils/Client';
 import Numbers from '../../utils/Numbers';
 import Contract from '../base/Contract';
 import ERC20TokenContract from '../base/ERC20TokenContract';
@@ -40,18 +32,14 @@ class FixedSwapContract extends BaseSwapContract {
     acc,
   }) {
     super({ web3, contractAddress, acc, contractInterface: fixedswap });
-    try {
-      if (tokenAddress) {
-        this.params.erc20TokenContract = new ERC20TokenContract({
-          web3,
-          contractAddress: tokenAddress,
-          acc,
-        });
-      } else if (!contractAddress) {
-        throw new Error('Please provide a contractAddress if already deployed');
-      }
-    } catch (err) {
-      throw err;
+    if (tokenAddress) {
+      this.params.erc20TokenContract = new ERC20TokenContract({
+        web3,
+        contractAddress: tokenAddress,
+        acc,
+      });
+    } else if (!contractAddress) {
+      throw new Error('Please provide a contractAddress if already deployed');
     }
   }
 
@@ -144,6 +132,8 @@ class FixedSwapContract extends BaseSwapContract {
       }
     }
 
+    let decimals = tradingDecimals;
+
     if (
       ERC20TradingAddress !== '0x0000000000000000000000000000000000000000' &&
       tradingDecimals === 0
@@ -153,12 +143,7 @@ class FixedSwapContract extends BaseSwapContract {
       );
     } else {
       /* is ETH Trade */
-      tradingDecimals = 18;
-    }
-
-    if (individualMaximumAmount === 0) {
-      individualMaximumAmount =
-        tokensForSale; /* Set Max Amount to Unlimited if 0 */
+      decimals = 18;
     }
 
     if (
@@ -169,7 +154,7 @@ class FixedSwapContract extends BaseSwapContract {
     }
 
     const DECIMALS_PERCENT_MUL = 10 ** 12;
-    vestingSchedule = vestingSchedule.map((a) =>
+    const vestingScheduleToDecimals = vestingSchedule.map((a) =>
       String(new Decimal(a).mul(DECIMALS_PERCENT_MUL)).toString()
     );
 
@@ -177,16 +162,9 @@ class FixedSwapContract extends BaseSwapContract {
     const FLAG_hasWhitelisting = 2; // Bit 1
     const FLAG_isPOLSWhitelisted = 4; // Bit 2 - true => user must have a certain amount of POLS staked to participate
 
-    if (vestingSchedule.length === 0) {
-      vestingCliff = 0;
-    }
-    if (!vestingStart) {
-      vestingStart = endDate;
-    }
-
     const params = [
       this.getTokenAddress(),
-      Numbers.toSmartContractDecimals(tradeValue, tradingDecimals),
+      Numbers.toSmartContractDecimals(tradeValue, decimals),
       Numbers.toSmartContractDecimals(tokensForSale, await this.getDecimals()),
       Numbers.timeToSmartContractTime(startDate),
       Numbers.timeToSmartContractTime(endDate),
@@ -195,7 +173,7 @@ class FixedSwapContract extends BaseSwapContract {
         await this.getDecimals()
       ),
       Numbers.toSmartContractDecimals(
-        individualMaximumAmount,
+        !individualMaximumAmount ? tokensForSale : individualMaximumAmount,
         await this.getDecimals()
       ),
       true, // ignored
@@ -205,10 +183,10 @@ class FixedSwapContract extends BaseSwapContract {
         (hasWhitelisting ? FLAG_hasWhitelisting : 0) |
         (isPOLSWhitelist ? FLAG_isPOLSWhitelisted : 0), // Flags
       ERC20TradingAddress,
-      Numbers.timeToSmartContractTime(vestingStart),
-      vestingCliff,
+      Numbers.timeToSmartContractTime(!vestingStart ? endDate : startDate),
+      !vestingSchedule.length ? 0 : vestingCliff,
       vestingDuration,
-      vestingSchedule,
+      vestingScheduleToDecimals,
     ];
 
     const res = await new DeploymentService().deploy(
@@ -247,9 +225,9 @@ class FixedSwapContract extends BaseSwapContract {
    * @param {string} address
    */
   async setStakingRewards({ address }) {
-    await this.executeContractMethod(
-      this.getContractMethods().setStakingRewards(address)
-    );
+    const methodToExecute =
+      this.getContractMethods().setStakingRewards(address);
+    await this.executeContractMethod({ methodToExecute });
     return true;
   }
 
@@ -732,7 +710,7 @@ class FixedSwapContract extends BaseSwapContract {
    */
   swapWithSig = async ({
     tokenAmount,
-    callback,
+    callback = () => {},
     signature,
     accountMaxAmount,
   }) => {
@@ -786,13 +764,9 @@ class FixedSwapContract extends BaseSwapContract {
       await this.getTradingDecimals()
     );
 
-    if (!signature) {
-      signature = '0x00';
-    }
-
     const methodToExecute = this.getContractMethods().swap(
       amountWithDecimals,
-      signature
+      signature || '0x00'
     );
     const value = (await this.isETHTrade()) ? costToDecimals : '0';
 
@@ -804,7 +778,7 @@ class FixedSwapContract extends BaseSwapContract {
     });
   };
 
-  __oldSwap = async ({ tokenAmount, callback }) => {
+  __oldSwap = async ({ tokenAmount, callback = () => {} }) => {
     console.log('swap (tokens Amount)', tokenAmount);
     const amountWithDecimals = Numbers.toSmartContractDecimals(
       tokenAmount,
@@ -870,13 +844,21 @@ class FixedSwapContract extends BaseSwapContract {
         { abi },
         this.params.contractAddress
       );
-      return this.executeContractMethod(
-        contract.getContract().methods.redeemTokens(purchase_id)
-      );
+      const methodToExecute = contract
+        .getContract()
+        .methods.redeemTokens(purchase_id);
+
+      return this.executeContractMethod({
+        methodToExecute,
+      });
     }
-    return this.executeContractMethod(
-      this.getContractMethods().transferTokens(purchase_id, stake)
+
+    const methodToExecute = this.getContractMethods().transferTokens(
+      purchase_id,
+      stake
     );
+
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -885,9 +867,8 @@ class FixedSwapContract extends BaseSwapContract {
    */
 
   withdrawUnsoldTokens = async () => {
-    return this.executeContractMethod(
-      this.getContractMethods().withdrawUnsoldTokens()
-    );
+    const methodToExecute = this.getContractMethods().withdrawUnsoldTokens();
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**
@@ -926,18 +907,17 @@ class FixedSwapContract extends BaseSwapContract {
     }
 
     const DECIMALS_PERCENT_MUL = 10 ** 12;
-    vestingSchedule = vestingSchedule.map((a) =>
-      String(new Decimal(a).mul(DECIMALS_PERCENT_MUL)).toString()
+    const vestingScheduleToDecimal = vestingSchedule.map((a) =>
+      new Decimal(a).mul(DECIMALS_PERCENT_MUL).toString()
+    );
+    const methodToExecute = this.getContractMethods().setVesting(
+      Numbers.timeToSmartContractTime(vestingStart),
+      vestingCliff,
+      vestingDuration,
+      vestingScheduleToDecimal
     );
 
-    return this.executeContractMethod(
-      this.getContractMethods().setVesting(
-        Numbers.timeToSmartContractTime(vestingStart),
-        vestingCliff,
-        vestingDuration,
-        vestingSchedule
-      )
-    );
+    return this.executeContractMethod({ methodToExecute });
   };
 
   /**

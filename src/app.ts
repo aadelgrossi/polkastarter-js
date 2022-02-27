@@ -26,7 +26,7 @@ type ConstructorArgs = {
 };
 type GetUserACcountParams = { privateKey: string };
 type GetFixedSwapContractArgs = {
-  tokenAddress: string;
+  tokenAddress?: string;
   contractAddress?: string;
   decimals?: number;
 };
@@ -169,7 +169,7 @@ class Application {
    * @description Returns Fixed Swap instance
    */
   getFixedSwapContract = async ({
-    tokenAddress,
+    tokenAddress = null,
     contractAddress = null,
   }: GetFixedSwapContractArgs) => {
     if (!contractAddress) {

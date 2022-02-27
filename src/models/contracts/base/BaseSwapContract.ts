@@ -2,7 +2,6 @@ import { BigNumber } from 'mathjs';
 import Web3 from 'web3';
 
 /* eslint-disable array-callback-return */
-/* eslint-disable @typescript-eslint/return-await */
 /* eslint-disable no-useless-catch */
 import { Client, Numbers } from '../../../utils';
 import { Account, Contract, ERC20TokenContract } from '../../base';
@@ -566,7 +565,7 @@ class BaseSwapContract {
    * @description Verify if the Token Sale in not open yet
    * @returns {Boolean}
    */
-  async isPreStart(): Promise<boolean> {
+  async isPreStart() {
     return (await this.getContractMethods().isPreStart().call()) as boolean;
   }
 

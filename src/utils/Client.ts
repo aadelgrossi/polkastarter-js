@@ -1,5 +1,4 @@
 import Web3 from 'web3';
-import { ContractSendMethod } from 'web3-eth-contract';
 
 import Account from '../models/base/Account';
 import Contract from '../models/base/Contract';
@@ -21,7 +20,7 @@ type SendTxArgs = {
   web3: Web3;
   acc: Account;
   contract: Contract;
-  f: Partial<ContractSendMethod> & { call: (args?: any) => void };
+  f: any;
   call?: boolean;
   value?: string;
   callback?: () => void;
@@ -66,7 +65,7 @@ class Client {
     contract,
     f,
     call = false,
-    value,
+    value = '0',
     callback = () => {},
   }: SendTxArgs) => {
     if (!acc && !call) {

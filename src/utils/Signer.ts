@@ -49,6 +49,12 @@ type SignAddressArgs = {
   contractAddress: string;
 };
 
+type SignedAddress = {
+  address: string;
+  signature: string;
+  allocation: string;
+};
+
 type SignMessageArgs = { signer: EthersSigner; message: ethers.Bytes | string };
 
 /**
@@ -137,7 +143,7 @@ class Signer {
     decimals,
     signer,
   }: SignAddressesWithSignerArgs) => {
-    const signedAddresses = [];
+    const signedAddresses: SignedAddress[] = [];
     let processed = 0;
     let rejected = 0;
 
@@ -147,22 +153,17 @@ class Signer {
           accountMaxAllocations[index],
           decimals
         );
-        const result = await this._trySignAddress(
+        const signature = await this._trySignAddress(
           signer,
           address,
           allocation,
           contractAddress
         );
-        if (result) {
-          signedAddresses.push({
-            address,
-            signature: result,
-            allocation,
-          });
+        if (signature) {
           processed += 1;
-        } else {
-          rejected += 1;
+          signedAddresses.push({ address, signature, allocation });
         }
+        rejected += 1;
       })
     );
 
