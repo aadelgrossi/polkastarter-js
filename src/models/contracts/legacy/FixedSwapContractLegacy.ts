@@ -1,16 +1,27 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable array-callback-return */
-/* eslint-disable no-param-reassign */
-/* eslint-disable radix */
-/* eslint-disable @typescript-eslint/return-await */
-/* eslint-disable no-useless-catch */
 import _ from 'lodash';
 import moment from 'moment';
+import Web3 from 'web3';
 
 import { fixedswap_legacy } from '../../../interfaces';
-import Numbers from '../../../utils/Numbers';
-import Contract from '../../base/Contract';
+import { Client, Numbers } from '../../../utils';
+import { Account, Contract } from '../../base';
 import ERC20TokenContract from '../../base/ERC20TokenContract';
+
+type FixedSwapContractLegacyConstructorArgs = {
+  web3: Web3;
+  tokenAddress: string;
+  decimals: number;
+  contractAddress?: string;
+  acc: Account;
+};
+
+type FixedSwapContractLegacyParams = {
+  web3: Web3;
+  contractAddress: string;
+  contract: Contract;
+  erc20TokenContract?: ERC20TokenContract;
+};
+
 /**
  * Fixed Swap Object
  * @constructor FixedSwapContract
@@ -20,54 +31,60 @@ import ERC20TokenContract from '../../base/ERC20TokenContract';
  * @param {Address} contractAddress ? (opt)
  */
 class FixedSwapContractLegacy {
+  web3: Web3;
+
+  version: string;
+
+  acc: Account;
+
+  private decimals: number;
+
+  private contractInterface: any;
+
+  private client: Client;
+
+  params: FixedSwapContractLegacyParams;
+
   constructor({
     web3,
     tokenAddress,
     decimals,
     contractAddress = null /* If not deployed */,
     acc,
-  }) {
-    try {
-      if (!web3) {
-        throw new Error('Please provide a valid web3 provider');
-      }
-      this.version = '1.0';
-      this.web3 = web3;
-      if (acc) {
-        this.acc = acc;
-      }
+  }: FixedSwapContractLegacyConstructorArgs) {
+    if (!web3) {
+      throw new Error('Please provide a valid web3 provider');
+    }
+    this.version = '1.0';
+    this.web3 = web3;
+    if (acc) {
+      this.acc = acc;
+    }
 
-      this.params = {
+    this.params = {
+      web3,
+      contractAddress,
+      contract: new Contract(web3, fixedswap_legacy, contractAddress),
+    };
+
+    if (tokenAddress && decimals) {
+      this.params.erc20TokenContract = new ERC20TokenContract({
         web3,
-        contractAddress,
-        contract: new Contract(web3, fixedswap_legacy, contractAddress),
-      };
-
-      if (tokenAddress && decimals) {
-        this.params.erc20TokenContract = new ERC20TokenContract({
-          web3,
-          contractAddress: tokenAddress,
-          acc,
-        });
-        this.decimals = decimals;
-      } else if (!contractAddress) {
-        throw new Error('Please provide a contractAddress if already deployed');
-      }
-    } catch (err) {
-      throw err;
+        contractAddress: tokenAddress,
+        acc,
+      });
+      this.decimals = decimals;
+    } else if (!contractAddress) {
+      throw new Error('Please provide a contractAddress if already deployed');
     }
   }
 
   __init__() {
-    try {
-      if (!this.getAddress()) {
-        throw new Error('Please add a Contract Address');
-      }
-
-      this.__assert();
-    } catch (err) {
-      throw err;
+    if (!this.getAddress()) {
+      throw new Error('Please add a Contract Address');
     }
+
+    this.__assert();
   }
 
   assertERC20Info = async () => {
@@ -82,7 +99,12 @@ class FixedSwapContractLegacy {
     this.decimals = decimals;
   };
 
-  __metamaskCall = async ({ f, acc, value, callback = () => {} }) => {
+  __metamaskCall = async ({
+    f,
+    acc,
+    value,
+    callback = (_args?: any) => {},
+  }) => {
     return new Promise((resolve, reject) => {
       f.send({
         from: acc,
@@ -100,7 +122,7 @@ class FixedSwapContractLegacy {
     });
   };
 
-  __sendTx = async (f, call = false, value, callback = () => {}) => {
+  __sendTx = async (f, call = false, value = '0', callback = () => {}) => {
     let res;
     if (!this.acc && !call) {
       const accounts = await this.params.web3.eth.getAccounts();
@@ -132,13 +154,9 @@ class FixedSwapContractLegacy {
    * @param {string} address
    */
   setNewOwner = async ({ address }) => {
-    try {
-      return await this.__sendTx(
-        this.params.contract.getContract().methods.transferOwnership(address)
-      );
-    } catch (err) {
-      throw err;
-    }
+    return await this.__sendTx(
+      this.params.contract.getContract().methods.transferOwnership(address)
+    );
   };
 
   /**
@@ -185,9 +203,8 @@ class FixedSwapContractLegacy {
    * @returns {Integer} Integer
    */
   async decimalsAsync() {
-    return parseInt(
-      await this.params.contract.getContract().methods.decimals().call()
-    );
+    const { methods } = this.params.contract.getContract();
+    return (await methods.decimals().call()) as number;
   }
 
   /**
@@ -218,6 +235,7 @@ class FixedSwapContractLegacy {
    * @returns {Date}
    */
   async startDate() {
+    console.log('is legacy');
     return Numbers.fromSmartContractTimeToMinutes(
       await this.params.contract.getContract().methods.startDate().call()
     );
@@ -342,10 +360,8 @@ class FixedSwapContractLegacy {
     return await this.params.contract
       .getContract()
       .methods.hasMinimumRaise()
-      .call({}, (error, result) => {
-        if (error) {
-          throw new Error(error);
-        }
+      .call({}, (error, _result) => {
+        if (error) throw new Error(error);
       });
   }
 
@@ -359,7 +375,7 @@ class FixedSwapContractLegacy {
     if (hasMinimumRaise) {
       const tokensAllocated = await this.tokensAllocated();
       const minimumRaise = await this.minimumRaise();
-      return parseFloat(tokensAllocated) > parseFloat(minimumRaise);
+      return tokensAllocated > minimumRaise;
     }
     return true;
   }
@@ -416,11 +432,11 @@ class FixedSwapContractLegacy {
    * @returns {Integer} Amount in ETH
    */
   async withdrawableFunds() {
-    let res = 0;
     if ((await this.hasFinalized()) && (await this.wasMinimumRaiseReached())) {
-      res = await this.getBalance();
+      const balance = await this.getBalance();
+      return Number(balance);
     }
-    return res;
+    return 0;
   }
 
   /**
@@ -560,15 +576,6 @@ class FixedSwapContractLegacy {
   }
 
   /**
-   * @function isPreStart
-   * @description Verify if the Token Sale in not open yet, where the admin can fund the pool
-   * @returns {Boolean}
-   */
-  async isPreStart() {
-    return await this.params.contract.getContract().methods.isPreStart().call();
-  }
-
-  /**
    * @function getCurrentSchedule
    * @description Gets Current Schedule
    * @returns {Integer}
@@ -632,11 +639,12 @@ class FixedSwapContractLegacy {
    * @returns {Array | Address} addresses
    */
 
-  getWhitelistedAddresses = async () =>
-    await this.params.contract
+  getWhitelistedAddresses = async () => {
+    return (await this.params.contract
       .getContract()
       .methods.getWhitelistedAddresses()
-      .call();
+      .call()) as string[];
+  };
 
   /**
    * @function getBuyers
@@ -713,7 +721,7 @@ class FixedSwapContractLegacy {
    * @param {Integer} tokenAmount
    */
 
-  swap = async ({ tokenAmount, callback }) => {
+  swap = async ({ tokenAmount, callback = () => {} }) => {
     const amountWithDecimals = Numbers.toSmartContractDecimals(
       tokenAmount,
       this.getDecimals()
@@ -837,7 +845,7 @@ class FixedSwapContractLegacy {
    * @description Send tokens to pool for sale, fund the sale
    * @param {Integer} tokenAmount
    */
-  fund = async ({ tokenAmount, callback }) => {
+  fund = async ({ tokenAmount, callback = () => {} }) => {
     const amountWithDecimals = Numbers.toSmartContractDecimals(
       tokenAmount,
       this.getDecimals()
@@ -861,17 +869,17 @@ class FixedSwapContractLegacy {
       throw new Error('Addresses not well setup');
     }
 
-    let oldAddresses = await this.getWhitelistedAddresses();
-    oldAddresses = oldAddresses.map((a) => String(a).toLowerCase());
-    addresses = addresses.map((a) => String(a).toLowerCase());
+    const oldAddresses = (await this.getWhitelistedAddresses()).map((a) =>
+      a.toLowerCase()
+    );
 
-    const addressesClean = [];
-    addresses = addresses.filter((item) => {
-      if (oldAddresses.indexOf(item) < 0 && addressesClean.indexOf(item) < 0) {
-        // Does not exist
-        addressesClean.push(item);
-      }
-    });
+    const addressesToLower = (addresses as string[]).map((a) =>
+      a.toLowerCase()
+    );
+
+    const addressesClean = (addresses as string[]).filter(
+      (item) => !oldAddresses.includes(item) && !addressesToLower.includes(item)
+    );
 
     return this.__sendTx(
       this.params.contract.getContract().methods.add(addressesClean)
@@ -896,7 +904,7 @@ class FixedSwapContractLegacy {
     return this.__sendTx(
       this.params.contract.getContract().methods.safePull(),
       null,
-      0
+      '0'
     );
   };
 
@@ -921,6 +929,18 @@ class FixedSwapContractLegacy {
   getDecimals = () => this.decimals || 18;
 
   /**
+   * @function getSmartContractVersion
+   * @description Returns the version of the smart contract that is currently inside psjs
+   * @param {Address} Address
+   */
+  getSmartContractVersion = async () => {
+    return (await this.params.contract
+      .getContract()
+      .methods.getAPIVersion()
+      .call()) as string;
+  };
+
+  /**
    * @function deploy
    * @description Deploy the Pool Contract
    */
@@ -935,8 +955,9 @@ class FixedSwapContractLegacy {
     minimumRaise = 0,
     feeAmount = 1,
     hasWhitelisting = false,
-    callback,
+    callback = () => {},
   }) => {
+    console.log('is legacy');
     if (_.isEmpty(this.getTokenAddress())) {
       throw new Error('Token Address not provided');
     }
@@ -955,10 +976,7 @@ class FixedSwapContractLegacy {
     if (Date.parse(startDate) >= Date.parse(endDate)) {
       throw new Error('Start Date has to be smaller than End Date');
     }
-    if (
-      Date.parse(startDate) <=
-      Date.parse(moment(Date.now()).add(2, 'm').toDate())
-    ) {
+    if (new Date(startDate) <= moment(Date.now()).add(2, 'm').toDate()) {
       throw new Error(
         'Start Date has to be higher (at least 2 minutes) than now'
       );
@@ -984,10 +1002,10 @@ class FixedSwapContractLegacy {
       }
     }
 
-    if (individualMaximumAmount === 0) {
-      individualMaximumAmount =
-        tokensForSale; /* Set Max Amount to Unlimited if 0 */
-    }
+    /* Set Max Amount to Unlimited if 0 */
+    const fixedIndividualAmount = !individualMaximumAmount
+      ? tokensForSale
+      : individualMaximumAmount;
 
     const params = [
       this.getTokenAddress(),
@@ -996,7 +1014,7 @@ class FixedSwapContractLegacy {
       Numbers.timeToSmartContractTime(startDate),
       Numbers.timeToSmartContractTime(endDate),
       Numbers.toSmartContractDecimals(
-        individualMinimumAmount,
+        fixedIndividualAmount,
         this.getDecimals()
       ),
       Numbers.toSmartContractDecimals(
@@ -1005,7 +1023,7 @@ class FixedSwapContractLegacy {
       ),
       isTokenSwapAtomic,
       Numbers.toSmartContractDecimals(minimumRaise, this.getDecimals()),
-      parseInt(feeAmount),
+      feeAmount,
       hasWhitelisting,
     ];
     const res = await this.__deploy(params, callback);
