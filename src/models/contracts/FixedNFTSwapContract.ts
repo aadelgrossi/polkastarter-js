@@ -1,5 +1,6 @@
 import { BaseSwapContract } from '@contracts';
 import { fixednftswap } from '@interfaces';
+import { ERC20TokenContract } from '@models';
 import { DeploymentService } from '@services';
 import { Numbers } from '@utils';
 import _ from 'lodash';
@@ -76,6 +77,14 @@ class FixedNFTSwapContract extends BaseSwapContract {
     } else {
       /* is ETH Trade */
       decimals = 18;
+    }
+
+    if (ERC20TradingAddress) {
+      this.params.erc20TokenContract = new ERC20TokenContract({
+        web3: this.web3,
+        contractAddress: ERC20TradingAddress,
+        acc: this.acc,
+      });
     }
 
     let totalRaise = 0;
