@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-setup-in-describe */
 /* eslint-disable global-require */
 
 context('Tests', () => {

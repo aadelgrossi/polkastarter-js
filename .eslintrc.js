@@ -33,6 +33,7 @@ module.exports = {
     'no-prototype-builtins': 'off',
     'no-async-promise-executor': 'off',
     'mocha/no-mocha-arrows': 'off',
+    'mocha/no-setup-in-describe': 'off',
     'no-underscore-dangle': 'off',
     '@typescript-eslint/default-param-last': 'off',
     '@typescript-eslint/return-await': 'off',

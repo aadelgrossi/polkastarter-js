@@ -1,12 +1,11 @@
 /* eslint-disable no-underscore-dangle */
+import { FixedSwapContractLegacy, FixedSwapContract } from '@contracts';
+import { mochaAsync } from '@test-utils';
 import chai from 'chai';
 import delay from 'delay';
-import moment, { isDate } from 'moment';
+import moment from 'moment';
 
-import { Application, FixedSwapContract } from '../../src';
-import FixedSwapContractLegacy from '../../src/models/contracts/legacy/FixedSwapContractLegacy';
-import { noExponents } from '../../src/utils/Numbers';
-import { mochaAsync } from '../utils';
+import { Application } from '../../src';
 
 require('dotenv').config();
 
@@ -42,10 +41,10 @@ context('ERC-20 Contract', () => {
     mochaAsync(async () => {
       app = new Application({ test: true });
       /* Create Contract */
-      swapContract = await app.getFixedSwapContract({
+      swapContract = (await app.getFixedSwapContract({
         tokenAddress: ERC20TokenAddress,
         decimals: 18,
-      });
+      })) as FixedSwapContract;
       /* Deploy */
       const res = await swapContract.deploy({
         tradeValue,
@@ -84,7 +83,7 @@ context('ERC-20 Contract', () => {
   it(
     'GET - isPreFunded',
     mochaAsync(async () => {
-      const res = await swapContract.isPreStart();
+      const res = await (swapContract as FixedSwapContract).isPreStart();
       expect(res).to.equal(true);
     })
   );
@@ -93,7 +92,7 @@ context('ERC-20 Contract', () => {
     'GET - tokensAllocated',
     mochaAsync(async () => {
       const tokens = await swapContract.tokensAllocated();
-      expect(tokens).to.equal(noExponents(0));
+      expect(tokens).to.equal(0);
     })
   );
 
@@ -101,7 +100,7 @@ context('ERC-20 Contract', () => {
     'GET - tradeValue',
     mochaAsync(async () => {
       const td = await swapContract.tradeValue();
-      expect(td).to.equal(noExponents(tradeValue));
+      expect(td).to.equal(tradeValue);
     })
   );
 
@@ -109,7 +108,7 @@ context('ERC-20 Contract', () => {
     'GET - tokensAvailable',
     mochaAsync(async () => {
       const tokens = await swapContract.tokensAvailable();
-      expect(tokens).to.equal(noExponents(0));
+      expect(tokens).to.equal(0);
     })
   );
 
@@ -126,7 +125,7 @@ context('ERC-20 Contract', () => {
     'GET - tokensForSale',
     mochaAsync(async () => {
       const tokens = await swapContract.tokensForSale();
-      expect(noExponents(tokens)).to.equal(noExponents(tokenFundAmount));
+      expect(tokens).to.equal(tokenFundAmount);
     })
   );
 
@@ -134,8 +133,7 @@ context('ERC-20 Contract', () => {
     'GET - tokensLeft',
     mochaAsync(async () => {
       const tokens = await swapContract.tokensLeft();
-      // tokensLeft = tokens;
-      expect(noExponents(tokens)).to.equal(noExponents(tokenFundAmount));
+      expect(tokens).to.equal(tokenFundAmount);
     })
   );
 
@@ -165,16 +163,15 @@ context('ERC-20 Contract', () => {
     'GET - tokensAvailable 2',
     mochaAsync(async () => {
       const tokens = await swapContract.tokensAvailable();
-      expect(tokens).to.equal(noExponents(tokenFundAmount));
+      expect(tokens).to.equal(tokenFundAmount);
     })
   );
 
   it(
     'GET - isFunded',
     mochaAsync(async () => {
-      const res = await swapContract.isFunded();
-      // isFunded = res;
-      expect(res).to.equal(true);
+      const funded = await swapContract.isFunded();
+      expect(funded).to.equal(true);
     })
   );
 
@@ -182,9 +179,8 @@ context('ERC-20 Contract', () => {
     'GET - isSaleOpen - before Start',
     mochaAsync(async () => {
       await delay(2 * 60 * 1000);
-      const res = await swapContract.isOpen();
-      // isSaleOpen = res;
-      expect(res).to.equal(true);
+      const open = await swapContract.isOpen();
+      expect(open).to.equal(true);
     })
   );
 
@@ -192,7 +188,7 @@ context('ERC-20 Contract', () => {
     'GET - tokensAvailable after fund',
     mochaAsync(async () => {
       const tokens = await swapContract.tokensAvailable();
-      expect(tokens).to.equal(noExponents(tokens));
+      expect(tokens).to.equal(tokens);
     })
   );
 
@@ -202,6 +198,7 @@ context('ERC-20 Contract', () => {
       await delay(15 * 1000);
       const res = await swapContract.approveSwapERC20({
         tokenAmount: tokenPurchaseAmount,
+        callback: () => {},
       });
       expect(res).to.not.equal(false);
     })
@@ -243,10 +240,8 @@ context('ERC-20 Contract', () => {
       const purchase = await swapContract.getPurchase({
         purchase_id: purchases[0],
       });
-      const amountPurchase = noExponents(purchase.amount);
-      expect(Number(amountPurchase).toFixed(2)).to.equal(
-        noExponents(tokenPurchaseAmount)
-      );
+      const amountPurchase = purchase.amount;
+      expect(Number(amountPurchase).toFixed(2)).to.equal(tokenPurchaseAmount);
       expect(purchase.purchaser).to.equal(app.account.getAddress());
       expect(purchase.wasFinalized).to.equal(true);
       expect(purchase.reverted).to.equal(false);
@@ -256,12 +251,9 @@ context('ERC-20 Contract', () => {
   it(
     'GET - tokensAvailable after Swap',
     mochaAsync(async () => {
-      let tokens = await swapContract.tokensAvailable();
-      tokens = noExponents(tokens);
-      tokensAvailable = noExponents(tokenFundAmount - tokenPurchaseAmount);
-      expect(Number(tokens).toFixed(2)).to.equal(
-        Number(tokensAvailable).toFixed(2)
-      );
+      const tokens = await swapContract.tokensAvailable();
+      tokensAvailable = tokenFundAmount - tokenPurchaseAmount;
+      expect(tokens.toFixed(2)).to.equal(tokensAvailable.toFixed(2));
     })
   );
 
@@ -287,11 +279,8 @@ context('ERC-20 Contract', () => {
   it(
     'GET - tokensAvailable after closed',
     mochaAsync(async () => {
-      let res = await swapContract.tokensAvailable();
-      res = noExponents(res);
-      expect(Number(res).toFixed(2)).to.equal(
-        Number(tokensAvailable).toFixed(2)
-      );
+      const res = await swapContract.tokensAvailable();
+      expect(res.toFixed(2)).to.equal(tokensAvailable.toFixed(2));
     })
   );
 

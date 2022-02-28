@@ -19,7 +19,7 @@ const tokenPurchaseAmount = 0.01;
 const tokenFundAmount = 0.03;
 const tradeValue = 0.01;
 
-context('Vesting Time = 2 And Vesting Schedule = 20% - 80%', () => {
+context('Vesting Time = 1 And Vesting Schedule = 100', () => {
   let swapContract: FixedSwapContract | FixedSwapContractLegacy;
   let app: Application;
 
@@ -36,17 +36,17 @@ context('Vesting Time = 2 And Vesting Schedule = 20% - 80%', () => {
         tokenAddress: ERC20TokenAddress,
         decimals: 18,
       });
-
       /* Deploy */
       const res = await swapContract.deploy({
         tradeValue,
         tokensForSale: tokenFundAmount,
         isTokenSwapAtomic: false,
         individualMaximumAmount: tokenFundAmount,
-        startDate: moment().add(5, 'minutes'),
-        endDate: moment().add(10, 'minutes'),
+        startDate: moment().add(4, 'minutes'),
+        endDate: moment().add(8, 'minutes'),
         hasWhitelisting: false,
         callback: () => {},
+        // firstUnlock: 100,
       });
       contractAddress = swapContract.getAddress();
       expect(res).to.not.equal(false);
@@ -57,10 +57,7 @@ context('Vesting Time = 2 And Vesting Schedule = 20% - 80%', () => {
     'should get a Fixed Swap Contract From contractAddress',
     mochaAsync(async () => {
       /* Get Contract */
-      swapContract = await app.getFixedSwapContract({
-        contractAddress,
-        tokenAddress: ERC20TokenAddress,
-      });
+      swapContract = await app.getFixedSwapContract({ contractAddress });
       swapContract.__init__();
       await swapContract.assertERC20Info();
       expect(swapContract).to.not.equal(false);
@@ -89,9 +86,17 @@ context('Vesting Time = 2 And Vesting Schedule = 20% - 80%', () => {
   );
 
   it(
+    'GET - isSaleOpen - before Start',
+    mochaAsync(async () => {
+      await delay(3 * 60 * 1000);
+      const saleOpen = await swapContract.isOpen();
+      expect(saleOpen).to.equal(true);
+    })
+  );
+
+  it(
     'should do a non atomic swap on the Contract',
     mochaAsync(async () => {
-      await delay(5 * 60 * 1000);
       const res = await swapContract.swap({ tokenAmount: tokenPurchaseAmount });
       expect(res).to.not.equal(false);
     })
@@ -116,29 +121,9 @@ context('Vesting Time = 2 And Vesting Schedule = 20% - 80%', () => {
   );
 
   it(
-    'GET - Purchase ID',
-    mochaAsync(async () => {
-      const purchases = await swapContract.getAddressPurchaseIds({
-        address: app.account.getAddress(),
-      });
-      const purchase = await swapContract.getPurchase({
-        purchase_id: purchases[0],
-      });
-      const amountPurchase = Number(purchase.amount);
-      expect(Number(amountPurchase).toFixed(2)).to.equal(
-        Number(tokenPurchaseAmount)
-      );
-      expect(purchase.purchaser).to.equal(app.account.getAddress());
-      expect(purchase.wasFinalized).to.equal(false);
-      expect(purchase.reverted).to.equal(false);
-      console.log(purchase);
-    })
-  );
-
-  it(
     'GET - Fixed Swap is Closed',
     mochaAsync(async () => {
-      await delay(1000);
+      await delay(4 * 60 * 1000);
       let res = await swapContract.hasFinalized();
       expect(res).to.equal(true);
       res = await swapContract.isOpen();
@@ -147,7 +132,25 @@ context('Vesting Time = 2 And Vesting Schedule = 20% - 80%', () => {
   );
 
   it(
-    'Should Redeem Tokens - First time',
+    'GET - Purchase ID',
+    mochaAsync(async () => {
+      const purchases = await swapContract.getAddressPurchaseIds({
+        address: app.account.getAddress(),
+      });
+      const { amount, purchaser, wasFinalized, reverted } =
+        await swapContract.getPurchase({
+          purchase_id: purchases[0],
+        });
+
+      expect(amount).to.equal(tokenPurchaseAmount);
+      expect(purchaser).to.equal(app.account.getAddress());
+      expect(wasFinalized).to.equal(false);
+      expect(reverted).to.equal(false);
+    })
+  );
+
+  it(
+    'Should Redeem Tokens',
     mochaAsync(async () => {
       const purchases = await swapContract.getAddressPurchaseIds({
         address: app.account.getAddress(),
@@ -166,27 +169,10 @@ context('Vesting Time = 2 And Vesting Schedule = 20% - 80%', () => {
   it(
     'GET - Distribution Info',
     mochaAsync(async () => {
-      const info = await swapContract.getDistributionInformation();
-      expect(Number(info.vestingTime)).to.equal(2);
-      expect(info.vestingSchedule).to.deep.equal([20, 80]);
-    })
-  );
-
-  it(
-    'Shouldnt Redeem Tokens - Second time',
-    mochaAsync(async () => {
-      const purchases = await swapContract.getAddressPurchaseIds({
-        address: app.account.getAddress(),
-      });
-      const purchase = await swapContract.getPurchase({
-        purchase_id: purchases[0],
-      });
-      const redeemTokens = await swapContract.redeemTokens({
-        purchase_id: purchase._id,
-      });
-      expect(redeemTokens).to.throw();
-      expect(redeemTokens.from).to.equal(app.account.getAddress());
-      expect(redeemTokens.status).to.equal(false);
+      const { vestingTime, vestingSchedule } =
+        await swapContract.getDistributionInformation();
+      expect(vestingTime).to.equal(1);
+      expect(vestingSchedule).to.deep.equal([100]);
     })
   );
 
@@ -196,16 +182,14 @@ context('Vesting Time = 2 And Vesting Schedule = 20% - 80%', () => {
       const purchases = await swapContract.getAddressPurchaseIds({
         address: app.account.getAddress(),
       });
-      const purchase = await swapContract.getPurchase({
-        purchase_id: purchases[0],
-      });
-      const amountPurchase = Number(purchase.amount);
-      expect(Number(amountPurchase).toFixed(2)).to.equal(
-        Number(tokenPurchaseAmount)
-      );
-      expect(purchase.purchaser).to.equal(app.account.getAddress());
-      expect(purchase.wasFinalized).to.equal(false);
-      expect(purchase.reverted).to.equal(false);
+      const { amount, purchaser, wasFinalized, reverted } =
+        await swapContract.getPurchase({
+          purchase_id: purchases[0],
+        });
+      expect(amount).to.equal(tokenPurchaseAmount);
+      expect(purchaser).to.equal(app.account.getAddress());
+      expect(wasFinalized).to.equal(false);
+      expect(reverted).to.equal(false);
     })
   );
 });
