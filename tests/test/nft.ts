@@ -1,4 +1,9 @@
 /* eslint-disable mocha/no-setup-in-describe */
+import { SupportedNetworks } from '@constants';
+import { FixedNFTSwapContract } from '@contracts';
+import { ierc20 } from '@interfaces';
+import { Contract } from '@models';
+import { mochaAsync } from '@test-utils';
 import chai from 'chai';
 import { providers } from 'ethers';
 import ganache from 'ganache-core';
@@ -6,11 +11,6 @@ import moment from 'moment';
 import Web3 from 'web3';
 
 import { Application } from '../../src';
-import { SupportedNetworks } from '../../src/constants/networks';
-import { ierc20 } from '../../src/interfaces';
-import { Contract } from '../../src/models/base';
-import { FixedNFTSwapContract } from '../../src/models/contracts';
-import { mochaAsync } from '../utils';
 
 require('dotenv').config();
 

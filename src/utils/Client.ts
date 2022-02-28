@@ -1,7 +1,6 @@
+import { Account, Contract } from '@models';
 import Web3 from 'web3';
 
-import Account from '../models/base/Account';
-import Contract from '../models/base/Contract';
 /* istanbul ignore file */
 
 /**

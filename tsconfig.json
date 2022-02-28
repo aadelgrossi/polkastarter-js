@@ -8,12 +8,22 @@
     "declaration": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "rootDir": "src",
-    "outDir": "dist"
+    "rootDir": ".",
+    "outDir": "lib",
+    "baseUrl": ".",
+    "paths": {
+      "@constants": ["./src/constants"],
+      "@interfaces": ["./src/interfaces"],
+      "@utils": ["./src/utils"],
+      "@test-utils": ["./tests/utils"],
+      "@models": ["./src/models/base"],
+      "@contracts": ["./src/models/contracts"],
+      "@services": ["./src/services"],
+    }
   },
   "lib": ["es2015"],
-  "include": ["./src", "types.d.ts"],
-  "exclude": ["node_modules", "tooling", "tests", "dist"],
+  "include": ["src", "types.d.ts","tests"],
+  "exclude": ["node_modules", "tooling", "dist"],
   "types": ["mocha"],
   "ts-node": {
     "files": true

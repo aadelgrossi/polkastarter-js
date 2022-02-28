@@ -2,19 +2,19 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable mocha/no-setup-in-describe */
+import { SupportedNetworks } from '@constants';
+import { IDOStaking, FixedSwapContract } from '@contracts';
+import { ierc20, swapv2 } from '@interfaces';
+import { Contract } from '@models';
+import { mochaAsync } from '@test-utils';
+import { Numbers } from '@utils';
 import chai from 'chai';
 import * as ethers from 'ethers';
 import ganache from 'ganache-core';
 import moment from 'moment';
 import Web3 from 'web3';
 
-import { Application, FixedSwapContract } from '../../src';
-import { SupportedNetworks } from '../../src/constants/networks';
-import { ierc20, swapv2 } from '../../src/interfaces';
-import { Contract } from '../../src/models/base';
-import IDOStaking from '../../src/models/contracts/IDOStaking';
-import { Numbers } from '../../src/utils';
-import { mochaAsync } from '../utils';
+import { Application } from '../../src';
 
 require('dotenv').config();
 

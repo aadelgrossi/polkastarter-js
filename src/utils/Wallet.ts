@@ -1,6 +1,7 @@
 /* istanbul ignore file */
 
-import { tokenTestAddresses, tokenAddresses } from '../constants/addresses';
+import { tokenTestAddresses, tokenAddresses } from '@constants';
+
 import Chains from './Chains';
 
 /**

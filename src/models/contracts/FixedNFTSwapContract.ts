@@ -1,11 +1,10 @@
+import { BaseSwapContract } from '@contracts';
+import { fixednftswap } from '@interfaces';
+import { DeploymentService } from '@services';
+import { Numbers } from '@utils';
 import _ from 'lodash';
 import { BigNumber } from 'mathjs';
 import moment from 'moment';
-
-import { fixednftswap } from '../../interfaces';
-import DeploymentService from '../../services/DeploymentService';
-import Numbers from '../../utils/Numbers';
-import BaseSwapContract from './base/BaseSwapContract';
 
 type SwapArgs = {
   tokenAmount: number;

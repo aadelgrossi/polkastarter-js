@@ -1,5 +1,4 @@
-import Account from '../models/base/Account';
-import Contract from '../models/base/Contract';
+import { Account, Contract } from '@models';
 
 class DeploymentService {
   async deploy(

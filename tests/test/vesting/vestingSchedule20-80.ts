@@ -1,14 +1,10 @@
+import { FixedSwapContractLegacy, FixedSwapContract } from '@contracts';
+import { mochaAsync } from '@test-utils';
 import chai from 'chai';
 import delay from 'delay';
 import moment from 'moment';
 
 import { Application } from '../../../src';
-import {
-  FixedSwapContractLegacy,
-  FixedSwapContract,
-} from '../../../src/models/contracts';
-import { noExponents } from '../../../src/utils/Numbers';
-import { mochaAsync } from '../../utils';
 
 require('dotenv').config();
 
@@ -129,9 +125,9 @@ context('Vesting Time = 2 And Vesting Schedule = 20% - 80%', () => {
       const purchase = await swapContract.getPurchase({
         purchase_id: purchases[0],
       });
-      const amountPurchase = noExponents(Number(purchase.amount));
+      const amountPurchase = Number(purchase.amount);
       expect(Number(amountPurchase).toFixed(2)).to.equal(
-        noExponents(Number(tokenPurchaseAmount))
+        Number(tokenPurchaseAmount)
       );
       expect(purchase.purchaser).to.equal(app.account.getAddress());
       expect(purchase.wasFinalized).to.equal(false);

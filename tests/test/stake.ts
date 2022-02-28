@@ -1,12 +1,12 @@
+import { ierc20, staking } from '@interfaces';
+import { Staking } from '@models';
+import { mochaAsync } from '@test-utils';
 import chai from 'chai';
 import * as ethers from 'ethers';
 import ganache from 'ganache-core';
 import Web3 from 'web3';
 
 import { Application } from '../../src';
-import { ierc20, staking } from '../../src/interfaces';
-import { Staking } from '../../src/models/base';
-import { mochaAsync } from '../utils';
 
 require('dotenv').config();
 

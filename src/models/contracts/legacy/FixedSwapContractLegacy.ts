@@ -1,11 +1,9 @@
+import { fixedswap_legacy } from '@interfaces';
+import { ERC20TokenContract, Account, Contract } from '@models';
+import { Client, Numbers } from '@utils';
 import _ from 'lodash';
 import moment from 'moment';
 import Web3 from 'web3';
-
-import { fixedswap_legacy } from '../../../interfaces';
-import { Client, Numbers } from '../../../utils';
-import { Account, Contract } from '../../base';
-import ERC20TokenContract from '../../base/ERC20TokenContract';
 
 type FixedSwapContractLegacyConstructorArgs = {
   web3: Web3;

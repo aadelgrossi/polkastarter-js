@@ -2,16 +2,15 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/return-await */
 /* eslint-disable no-bitwise */
+import { BaseSwapContract } from '@contracts';
+import { fixedswap } from '@interfaces';
+import { Contract, ERC20TokenContract } from '@models';
+import { DeploymentService } from '@services';
+import { Numbers } from '@utils';
 import { Decimal } from 'decimal.js';
 import _ from 'lodash';
 import moment from 'moment';
 
-import { fixedswap } from '../../interfaces';
-import DeploymentService from '../../services/DeploymentService';
-import Numbers from '../../utils/Numbers';
-import Contract from '../base/Contract';
-import ERC20TokenContract from '../base/ERC20TokenContract';
-import BaseSwapContract from './base/BaseSwapContract';
 import IDOStaking from './IDOStaking';
 
 const RESIDUAL_ETH = 0.00001;

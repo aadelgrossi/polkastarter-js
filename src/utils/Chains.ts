@@ -1,4 +1,4 @@
-import { SupportedNetworks, networkUrls } from '../constants/networks';
+import { SupportedNetworks, networkUrls } from '@constants';
 
 /**
  * Chains object

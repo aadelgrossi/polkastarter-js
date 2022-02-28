@@ -1,5 +1,3 @@
-import Web3 from 'web3';
-
 /* eslint-disable @typescript-eslint/return-await */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-useless-catch */
@@ -8,9 +6,11 @@ import {
   stakingTestAddresses,
   tokenAddresses,
   tokenTestAddresses,
-} from '../../constants/addresses';
-import { staking } from '../../interfaces';
-import { Chains, Client, Numbers } from '../../utils';
+} from '@constants';
+import { staking } from '@interfaces';
+import { Chains, Client, Numbers } from '@utils';
+import Web3 from 'web3';
+
 import Account from './Account';
 import Contract from './Contract';
 import ERC20TokenContract from './ERC20TokenContract';

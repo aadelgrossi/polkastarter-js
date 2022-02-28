@@ -1,8 +1,7 @@
+import { idostaking } from '@interfaces';
+import { Account, Contract, ERC20TokenContract } from '@models';
+import { Client, Numbers } from '@utils';
 import Web3 from 'web3';
-
-import { idostaking } from '../../interfaces';
-import { Client, Numbers } from '../../utils';
-import { Account, Contract, ERC20TokenContract } from '../base';
 
 type IDOStakingParams = {
   web3: Web3;

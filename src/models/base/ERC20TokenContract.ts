@@ -1,7 +1,7 @@
+import { ierc20 } from '@interfaces';
+import { Client, Numbers } from '@utils';
 import Web3 from 'web3';
 
-import { ierc20 } from '../../interfaces';
-import { Client, Numbers } from '../../utils';
 import Account from './Account';
 import Contract from './Contract';
 

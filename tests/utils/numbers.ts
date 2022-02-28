@@ -1,8 +1,8 @@
+import { Numbers } from '@utils';
 import chai from 'chai';
 import { Decimal } from 'decimal.js';
 
 import { mochaAsync } from '.';
-import { Numbers } from '../../src/utils';
 
 require('dotenv').config();
 
