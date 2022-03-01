@@ -409,8 +409,7 @@ class FixedNFTSwapContract extends BaseSwapContract {
     const res = (await this.getContractMethods()
       .getPurchasesCount()
       .call()) as number;
-
-    const ids = Array.from(Array(res).keys());
+    const ids = _.times(res).map((_item, index) => index);
 
     return ids;
   };
