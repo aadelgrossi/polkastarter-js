@@ -7,7 +7,7 @@ context('Tests', () => {
   require('./test/stake');
   require('./test/nft');
   require('./test/nft-whitelist');
-  // require('./test/nft-erc20');
+  require('./test/nft-erc20');
   // require('./test/vesting');
   // require('./test/erc20');
 });
