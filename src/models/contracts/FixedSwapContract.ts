@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/return-await */
@@ -726,6 +727,11 @@ class FixedSwapContract extends BaseSwapContract {
       cost,
       await this.getTradingDecimals()
     );
+
+    if (!signature) {
+      signature = '0x00';
+    }
+
     const methodToExecute = this.getContractMethods().swapWithSig(
       amountWithDecimals,
       accountMaxAmount,

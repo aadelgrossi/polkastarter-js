@@ -1,6 +1,6 @@
 {
     "name": "polkastarter-js",
-    "version": "2.2.7-nft-beta4",
+    "version": "3.0.0",
     "description": "",
     "main": "dist/index.js",
     "engines": {

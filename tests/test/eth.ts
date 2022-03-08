@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-loss-of-precision */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-restricted-syntax */
@@ -415,7 +416,11 @@ context('ETH Contract', () => {
           tokenAmount: tokenPurchaseAmount,
         });
       } else {
-        res = await swapContract.swap({ tokenAmount: tokenPurchaseAmount });
+        res = await swapContract.swapWithSig({
+          tokenAmount: tokenPurchaseAmount,
+          signature: '',
+          accountMaxAmount: 0,
+        });
       }
       expect(res).to.not.equal(false);
     })
@@ -671,6 +676,8 @@ context('ETH Contract', () => {
             tokenAmount: 500,
           });
 
+        expect(await staking.balanceRewardsToken()).to.equal(500);
+
         await staking.claim();
 
         expect(
@@ -689,6 +696,10 @@ context('ETH Contract', () => {
           await staking.stakeAmount({ address: app.account.getAddress() })
         ).to.equal(0);
         expect(await staking.totalStaked()).to.equal(0);
+        const balanceRewardsToken = await staking.balanceRewardsToken();
+        expect(balanceRewardsToken.toString()).to.equal(
+          '499.916620370370370904'
+        );
       }
     })
   );

@@ -242,16 +242,36 @@ class IDOStaking {
   };
 
   /**
+   * @function transferRewardTokenSamePeriod
+   * @description Transfer and add (more) rewards token to current/future period
+   * @param {Integer} amount
+   */
+  transferRewardTokenSamePeriod = async ({ reward }) => {
+    const amount = Numbers.toSmartContractDecimals(
+      reward,
+      await this.getRewardsDecimals()
+    );
+
+    const f = this.params.contract
+      .getContract()
+      .methods.transferRewardTokenSamePeriod(amount);
+
+    return await this.client.sendTx({
+      web3: this.params.web3,
+      acc: this.acc,
+      contract: this.params.contract,
+      f,
+    });
+  };
+
+  /**
    * @function userAccumulatedRewards
    * @description Returns the accumulated rewards
    * @param {string} address
    * @returns {Integer} userAccumulatedRewards
    */
   userAccumulatedRewards = async ({ address }) => {
-    const earned = await this.params.contract
-      .getContract()
-      .methods.earned(address)
-      .call();
+    const earned = await this.getContractMethods().earned(address).call();
     const decimals = await this.getDecimals();
 
     return Numbers.fromDecimals(earned, decimals);
@@ -280,6 +300,20 @@ class IDOStaking {
     const decimals = await this.getDecimals();
 
     return Numbers.fromDecimals(totalSupply, decimals);
+  };
+
+  /**
+   * @function balanceRewardsToken
+   * @description substract staked amount if staked token is the same as rewards token
+   * @returns {Integer} totalRewardsAmount
+   */
+  balanceRewardsToken = async () => {
+    const decimals = await this.getDecimals();
+    const balanceRewardsToken = await this.getContractMethods()
+      .balanceRewardsToken()
+      .call();
+
+    return Numbers.fromDecimals(balanceRewardsToken, decimals);
   };
 
   /**

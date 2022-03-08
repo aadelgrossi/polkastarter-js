@@ -23,7 +23,7 @@ export const networkUrls: NetworkUrls = {
     test: 'https://data-seed-prebsc-1-s1.binance.org:8545',
   },
   MATIC: {
-    main: 'https://rpc-mainnet.maticvigil.com/',
+    main: 'https://polygon-rpc.com',
     test: 'https://rpc-mumbai.maticvigil.com/',
   },
 };
